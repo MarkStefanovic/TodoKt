@@ -17,6 +17,7 @@ import kotlinx.coroutines.FlowPreview
 import presentation.TodoListViewItem
 import presentation.TodoListViewModel
 import presentation.shared.EnumDropdown
+import java.time.Duration
 import java.time.LocalDate
 import java.time.format.TextStyle
 import java.util.*
@@ -24,6 +25,7 @@ import java.util.*
 @Composable
 @FlowPreview
 @ExperimentalUnitApi
+@ExperimentalMaterialApi
 @ExperimentalAnimationApi
 @ExperimentalFoundationApi
 @ExperimentalCoroutinesApi
@@ -92,7 +94,6 @@ fun TodoListView(
       Button(
         onClick = { todoListViewModel.refresh() },
         modifier = Modifier.padding(top = 10.dp),
-        //        modifier = Modifier.height(30.dp),
       ) { Text("Refresh", fontWeight = FontWeight.Bold) }
 
       Spacer(Modifier.width(20.dp))
@@ -145,12 +146,10 @@ fun TodoListView(
     Spacer(Modifier.height(10.dp))
 
     LazyColumn(
-      //      contentPadding = PaddingValues(vertical = 8.dp),
-      //      verticalArrangement = Arrangement.spacedBy(4.dp),
       state = listState,
     ) {
       todos.forEach { (dt, todos) ->
-        val daysUntil = todoListViewModel.refDate.until(dt).days
+        val daysUntil = todoListViewModel.refDate.toEpochDay() - dt.toEpochDay()
 
         stickyHeader {
           Text(

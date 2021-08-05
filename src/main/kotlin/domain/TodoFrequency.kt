@@ -11,8 +11,14 @@ data class DisplayWindow(
   val displayEndDate: LocalDate,
 )
 
+data class DisplayWindowCalcArgs(
+  val frequency: TodoFrequency,
+  val refDate: LocalDate,
+  val lastDate: LocalDate?,
+)
+
 object DisplayWindowCalc {
-  private var cache: ConcurrentHashMap<Pair<TodoFrequency, LocalDate>, DisplayWindow> =
+  private var cache: ConcurrentHashMap<DisplayWindowCalcArgs, DisplayWindow> =
     ConcurrentHashMap()
 
   fun nextDisplayWindow(
@@ -22,8 +28,13 @@ object DisplayWindowCalc {
     advanceDisplayDays: Int,
     expireDisplayDays: Int,
     refDate: LocalDate,
-  ): DisplayWindow =
-    cache.getOrPut(frequency to refDate) {
+  ): DisplayWindow {
+    val key = DisplayWindowCalcArgs(
+      frequency = frequency,
+      refDate = refDate,
+      lastDate = lastDate,
+    )
+    return cache.getOrPut(key) {
       frequency.nextDisplayWindow(
         startDate = startDate,
         lastDate = lastDate,
@@ -31,7 +42,7 @@ object DisplayWindowCalc {
         expireDisplayDays = expireDisplayDays,
         refDate = refDate
       )
-    }
+    }}
 }
 
 sealed class TodoFrequency {
@@ -57,7 +68,6 @@ sealed class TodoFrequency {
     ): DisplayWindow =
       if (lastDate == null) {
         DisplayWindow(
-          //          priorDate = refDate.minusDays(1L),
           nextDate = refDate,
           displayStartDate = refDate,
           displayEndDate = refDate.plusDays(expireDisplayDays.toLong()),
@@ -66,14 +76,12 @@ sealed class TodoFrequency {
         if (lastDate >= LocalDate.now()) {
           val tomorrow = refDate.plusDays(1L)
           DisplayWindow(
-            //            priorDate = refDate,
             nextDate = tomorrow,
             displayStartDate = tomorrow,
             displayEndDate = tomorrow.plusDays(expireDisplayDays.toLong()),
           )
         } else {
           DisplayWindow(
-            //            priorDate = refDate.minusDays(1L),
             nextDate = refDate,
             displayStartDate = refDate,
             displayEndDate = refDate.plusDays(expireDisplayDays.toLong()),
@@ -190,11 +198,12 @@ sealed class TodoFrequency {
       advanceDisplayDays: Int,
       expireDisplayDays: Int,
       refDate: LocalDate,
-    ) = DisplayWindow(
-      nextDate = startDate,
-      displayStartDate = startDate.minusDays(advanceDisplayDays.toLong()),
-      displayEndDate = startDate.plusDays(expireDisplayDays.toLong()),
-    )
+    ) =
+      DisplayWindow(
+        nextDate = startDate,
+        displayStartDate = startDate.minusDays(advanceDisplayDays.toLong()),
+        displayEndDate = startDate.plusDays(expireDisplayDays.toLong()),
+      )
   }
 
   data class Weekly(val weekday: Weekday) : TodoFrequency() {
@@ -316,6 +325,7 @@ fun getNextDisplayStartDate(
       startDate = startDate,
       refDate = refDate,
       priorDate = priorDate,
+      lastDate = lastDate,
       getNextDate = getNextDate,
       advanceDays = advanceDays,
       expireDays = expireDays,
@@ -326,16 +336,18 @@ fun getFirstDateInRange(
   startDate: LocalDate,
   refDate: LocalDate,
   priorDate: LocalDate,
+  lastDate: LocalDate?,
   getNextDate: (LocalDate) -> LocalDate,
   advanceDays: Int,
   expireDays: Int,
 ): DisplayWindow {
   val endDate = priorDate.plusDays(expireDays.toLong())
-  return if (refDate <= endDate) {
-    val displayStartDate = priorDate.minusDays(advanceDays.toLong())
-    //    val nextDate = getNextDate(priorDate)
+  val displayStartDate = priorDate.minusDays(advanceDays.toLong())
+  return if (refDate <= endDate &&
+      startDate <= endDate &&
+      (lastDate == null || lastDate < displayStartDate)
+  ) {
     DisplayWindow(
-      //      priorDate = priorDate,
       nextDate = priorDate,
       displayStartDate = displayStartDate,
       displayEndDate = priorDate.plusDays(expireDays.toLong()),
@@ -346,28 +358,14 @@ fun getFirstDateInRange(
       "getNextDate must always return a LocalDate after the date, but it returned $nextDate when the " +
         "date was $priorDate."
     }
-    val result =
-      getFirstDateInRange(
-        startDate = startDate,
-        refDate = refDate,
-        priorDate = nextDate,
-        getNextDate = getNextDate,
-        advanceDays = advanceDays,
-        expireDays = expireDays,
-      )
-    val nextDisplayStartDate =
-      if (result.displayStartDate < startDate) {
-        startDate
-      } else {
-        result.displayStartDate
-      }
-    DisplayWindow(
-      //      priorDate = result.priorDate,
-      //      nextDate = result.nextDate,
-      //      priorDate = result.priorDate,
-      nextDate = result.nextDate,
-      displayStartDate = nextDisplayStartDate,
-      displayEndDate = result.displayEndDate,
+    getFirstDateInRange(
+      startDate = startDate,
+      refDate = refDate,
+      priorDate = nextDate,
+      lastDate = lastDate,
+      getNextDate = getNextDate,
+      advanceDays = advanceDays,
+      expireDays = expireDays,
     )
   }
 }

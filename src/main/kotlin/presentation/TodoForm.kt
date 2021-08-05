@@ -10,8 +10,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.ExperimentalUnitApi
 import androidx.compose.ui.unit.dp
 import domain.*
-import presentation.shared.*
 import java.time.LocalDate
+import presentation.shared.*
 
 @ExperimentalUnitApi
 @Composable
@@ -20,6 +20,8 @@ fun TodoForm(
   onValueChange: (Todo) -> Unit,
   onBack: () -> Unit,
 ) {
+  val isAddMode = value.todoId == -1
+
   var description: String by remember { mutableStateOf(value.description) }
   var startDate: LocalDate by remember { mutableStateOf(value.startDate) }
   var note: String by remember { mutableStateOf(value.note) }
@@ -31,7 +33,21 @@ fun TodoForm(
   var monthday: Int by remember { mutableStateOf(value.monthday ?: 1) }
   var week: Int by remember { mutableStateOf(value.week ?: 1) }
   var weekday: Weekday by remember { mutableStateOf(value.weekday ?: Weekday.Monday) }
-  val title = if (value.todoId == -1) "Add Todo" else "Edit Todo"
+  val title = if (isAddMode) "Add Todo" else "Edit Todo"
+
+//  var advanceDisplayDays: Int by mutableStateOf(
+//    if (isAddMode) getDefaultAdvanceDisplayDays(frequencyName = frequencyName)
+//    else value.advanceDisplayDays
+//  )
+//
+//  var expireDisplayDays: Int by mutableStateOf(
+//    if (isAddMode) getDefaultExpireDisplayDays(frequencyName = frequencyName)
+//    else value.expireDisplayDays
+//  )
+
+//  println(
+//    "frequencyName = $frequencyName, advanceDisplayDays = $advanceDisplayDays, expireDisplayDays = $expireDisplayDays"
+//  )
 
   Column(modifier = Modifier.padding(10.dp)) {
     TopAppBar(
@@ -72,7 +88,9 @@ fun TodoForm(
     EnumDropdown(
       label = "Frequency",
       value = frequencyName,
-      onValueChange = { frequencyName = it },
+      onValueChange = {
+        frequencyName = it
+      },
     )
 
     Spacer(Modifier.height(10.dp))
@@ -95,6 +113,7 @@ fun TodoForm(
           label = "Weekday",
           value = weekday,
           onValueChange = {
+            println("weekday = $it")
             weekday = it
           }
         )
@@ -125,28 +144,18 @@ fun TodoForm(
         BoundedIntField(
           label = "Month",
           value = month,
-          onValueChange = {
-            month = it
-          },
+          onValueChange = { month = it },
           minValue = 1,
           maxValue = 12,
         )
         BoundedIntField(
           label = "Week",
           value = week,
-          onValueChange = {
-            week = it
-          },
+          onValueChange = { week = it },
           minValue = 1,
           maxValue = 5,
         )
-        EnumDropdown(
-          label = "Weekday",
-          value = weekday,
-          onValueChange = {
-            weekday = it
-          }
-        )
+        EnumDropdown(label = "Weekday", value = weekday, onValueChange = { weekday = it })
       }
     }
 
@@ -165,9 +174,7 @@ fun TodoForm(
       value = advanceDisplayDays,
       minValue = 0,
       maxValue = 999,
-      onValueChange = {
-        advanceDisplayDays = it
-      }
+      onValueChange = { advanceDisplayDays = it }
     )
 
     Spacer(Modifier.height(10.dp))
@@ -177,9 +184,7 @@ fun TodoForm(
       value = expireDisplayDays,
       minValue = 0,
       maxValue = 999,
-      onValueChange = {
-        expireDisplayDays = it
-      }
+      onValueChange = { expireDisplayDays = it }
     )
 
     Spacer(Modifier.height(10.dp))
@@ -195,7 +200,7 @@ fun TodoForm(
 
           description = value.description
           todoCategory = value.category
-//          category = value.category.toString()
+          //          category = value.category.toString()
           startDate = value.startDate
           note = value.note
           advanceDisplayDays = value.advanceDisplayDays
@@ -219,23 +224,23 @@ fun TodoForm(
           val todoFrequency =
             when (frequencyName) {
               TodoFrequencyName.Daily -> TodoFrequency.Daily
-              TodoFrequencyName.Monthly ->
-                TodoFrequency.Monthly(monthday = monthday)
+              TodoFrequencyName.Monthly -> TodoFrequency.Monthly(monthday = monthday)
               TodoFrequencyName.Once -> TodoFrequency.Once(startDate)
               TodoFrequencyName.Weekly ->
                 TodoFrequency.Weekly(
-                  weekday = Weekday.Monday,
+                  weekday = weekday,
                 )
               TodoFrequencyName.Yearly ->
                 TodoFrequency.Yearly(
                   month = month,
                   day = monthday,
                 )
-              TodoFrequencyName.XMonthYWeekZWeekday -> TodoFrequency.XMonthYWeekZWeekday(
-                month = month,
-                week = week,
-                weekday = weekday,
-              )
+              TodoFrequencyName.XMonthYWeekZWeekday ->
+                TodoFrequency.XMonthYWeekZWeekday(
+                  month = month,
+                  week = week,
+                  weekday = weekday,
+                )
             }
 
           val todo =

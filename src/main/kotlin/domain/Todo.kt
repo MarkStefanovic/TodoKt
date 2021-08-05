@@ -190,3 +190,23 @@ val holidays: List<Todo> =
       expireDisplayDays = 3,
     ),
   )
+
+fun getDefaultAdvanceDisplayDays(frequencyName: TodoFrequencyName): Int =
+  when (frequencyName) {
+    TodoFrequencyName.Daily               -> 0
+    TodoFrequencyName.Monthly             -> 7
+    TodoFrequencyName.Once                -> 14
+    TodoFrequencyName.Weekly              -> 0
+    TodoFrequencyName.XMonthYWeekZWeekday -> 363
+    TodoFrequencyName.Yearly              -> 363
+  }
+
+fun getDefaultExpireDisplayDays(frequencyName: TodoFrequencyName): Int =
+  when (frequencyName) {
+    TodoFrequencyName.Daily               -> 0
+    TodoFrequencyName.Monthly             -> 7
+    TodoFrequencyName.Once                -> 7
+    TodoFrequencyName.Weekly              -> 6
+    TodoFrequencyName.XMonthYWeekZWeekday -> 363
+    TodoFrequencyName.Yearly              -> 363
+  }

@@ -53,7 +53,6 @@ inline fun <reified T : Enum<T>> EnumDropdown(
           }
         ) {
           Text(text = str, modifier = Modifier.height(30.dp))
-          //          Text(text = str, fontSize = 10.sp, modifier = Modifier.height(30.dp))
         }
       }
     }

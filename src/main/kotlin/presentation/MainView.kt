@@ -3,12 +3,14 @@ package presentation
 import TodoListView
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.runtime.*
 import androidx.compose.ui.unit.ExperimentalUnitApi
-import domain.Todo
+import domain.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 
+@ExperimentalMaterialApi
 @Composable
 @FlowPreview
 @ExperimentalUnitApi
@@ -46,8 +48,12 @@ fun MainView(todoListViewModel: TodoListViewModel) {
     Screen.List ->
       TodoListView(
         todoListViewModel = todoListViewModel,
-        onAddButtonClick = { screenState = Screen.Details(todo = Todo.default()) },
-        onEditButtonClick = { todo -> screenState = Screen.Details(todo = todo) },
+        onAddButtonClick = {
+          screenState = Screen.Details(todo = Todo.default())
+        },
+        onEditButtonClick = {
+          todo -> screenState = Screen.Details(todo = todo)
+        },
       )
   }
 }
