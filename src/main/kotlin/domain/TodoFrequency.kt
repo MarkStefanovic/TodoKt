@@ -42,7 +42,8 @@ object DisplayWindowCalc {
         expireDisplayDays = expireDisplayDays,
         refDate = refDate
       )
-    }}
+    }
+  }
 }
 
 sealed class TodoFrequency {
@@ -344,8 +345,8 @@ fun getFirstDateInRange(
   val endDate = priorDate.plusDays(expireDays.toLong())
   val displayStartDate = priorDate.minusDays(advanceDays.toLong())
   return if (refDate <= endDate &&
-      startDate <= endDate &&
-      (lastDate == null || lastDate < displayStartDate)
+    startDate <= endDate &&
+    (lastDate == null || lastDate < displayStartDate)
   ) {
     DisplayWindow(
       nextDate = priorDate,

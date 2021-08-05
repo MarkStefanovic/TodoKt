@@ -52,7 +52,8 @@ fun MainView(todoListViewModel: TodoListViewModel) {
           screenState = Screen.Details(todo = Todo.default())
         },
         onEditButtonClick = {
-          todo -> screenState = Screen.Details(todo = todo)
+          todo ->
+          screenState = Screen.Details(todo = todo)
         },
       )
   }
