@@ -73,7 +73,7 @@ fun main() {
       repository = todoRepository,
     )
 
-  return Window(title = "Todos", size = IntSize(600, 800)) {
+  return Window(title = "Todos", size = IntSize(600, 830)) {
     MaterialTheme(colors = darkColors()) {
       Surface(
         color = MaterialTheme.colors.surface,

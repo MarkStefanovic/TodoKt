@@ -242,6 +242,35 @@ sealed class TodoFrequency {
       )
   }
 
+  data class XDays(val days: Int) : TodoFrequency() {
+    override val name = TodoFrequencyName.XDays
+
+    init {
+      require(days > 0) { "days must be positive." }
+    }
+
+    override fun nextDisplayWindow(
+      startDate: LocalDate,
+      lastDate: LocalDate?,
+      advanceDisplayDays: Int,
+      expireDisplayDays: Int,
+      refDate: LocalDate,
+    ): DisplayWindow {
+      val nextDate = if (refDate <= startDate) {
+        startDate
+      } else {
+        val daysSinceStart = refDate.toEpochDay() - startDate.toEpochDay()
+        val daysToAdd = days - daysSinceStart.mod(days)
+        refDate.plusDays(daysToAdd.toLong())
+      }
+      return DisplayWindow(
+        nextDate = nextDate,
+        displayStartDate = nextDate.minusDays(advanceDisplayDays.toLong()),
+        displayEndDate = nextDate.plusDays(expireDisplayDays.toLong()),
+      )
+    }
+  }
+
   data class Yearly(
     val month: Int,
     val day: Int,

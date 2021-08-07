@@ -5,6 +5,7 @@ enum class TodoFrequencyName {
   Monthly,
   Once,
   Weekly,
+  XDays,
   XMonthYWeekZWeekday,
   Yearly;
 }

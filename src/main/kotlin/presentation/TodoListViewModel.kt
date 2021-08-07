@@ -65,6 +65,7 @@ class TodoListViewModel(
               day = monthday ?: error("monthday is required.")
             )
           TodoFrequencyName.Once -> TodoFrequency.Once(date = startDate)
+          TodoFrequencyName.XDays -> TodoFrequency.XDays(days = monthday ?: error("days is required."))
           TodoFrequencyName.XMonthYWeekZWeekday ->
             TodoFrequency.XMonthYWeekZWeekday(
               month = month ?: error("month is required."),

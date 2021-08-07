@@ -37,6 +37,8 @@ data class TodoFormState(val value: Todo) {
 
   var weekday: Weekday by mutableStateOf(value.weekday ?: Weekday.Monday)
 
+  var days: Int by mutableStateOf(value.days ?: 5)
+
   val frequency: TodoFrequency
     get() =
       when (frequencyName) {
@@ -44,6 +46,7 @@ data class TodoFormState(val value: Todo) {
         TodoFrequencyName.Monthly -> TodoFrequency.Monthly(monthday = monthday)
         TodoFrequencyName.Once -> TodoFrequency.Once(date = startDate)
         TodoFrequencyName.Weekly -> TodoFrequency.Weekly(weekday = weekday)
+        TodoFrequencyName.XDays -> TodoFrequency.XDays(days = days)
         TodoFrequencyName.XMonthYWeekZWeekday ->
           TodoFrequency.XMonthYWeekZWeekday(
             month = month,
@@ -103,9 +106,7 @@ fun TodoForm(
 
     TextField(
       value = state.description,
-      onValueChange = {
-        state.description = it
-      },
+      onValueChange = { state.description = it },
       label = { Text("Description") }
     )
 
@@ -113,9 +114,7 @@ fun TodoForm(
 
     TextField(
       value = state.note,
-      onValueChange = {
-        state.note = it
-      },
+      onValueChange = { state.note = it },
       label = { Text("Note") },
     )
 
@@ -124,9 +123,7 @@ fun TodoForm(
     EnumDropdown(
       label = "Category",
       value = state.category,
-      onValueChange = {
-        state.category = it
-      },
+      onValueChange = { state.category = it },
     )
 
     Spacer(Modifier.height(10.dp))
@@ -134,9 +131,7 @@ fun TodoForm(
     EnumDropdown(
       label = "Frequency",
       value = state.frequency.name,
-      onValueChange = {
-        state.frequencyName = it
-      },
+      onValueChange = { state.frequencyName = it },
     )
 
     Spacer(Modifier.height(10.dp))
@@ -147,9 +142,7 @@ fun TodoForm(
         BoundedIntField(
           label = "Month Day",
           value = state.monthday,
-          onValueChange = {
-            state.monthday = it
-          },
+          onValueChange = { state.monthday = it },
           minValue = 1,
           maxValue = 28,
         )
@@ -157,56 +150,53 @@ fun TodoForm(
         EnumDropdown(
           label = "Weekday",
           value = state.weekday,
-          onValueChange = {
-            state.weekday = it
-          }
+          onValueChange = { state.weekday = it }
         )
       TodoFrequencyName.Yearly -> {
         BoundedIntField(
           label = "Month",
           value = state.month,
-          onValueChange = {
-            state.month = it
-          },
+          onValueChange = { state.month = it },
           minValue = 1,
           maxValue = 12,
         )
         BoundedIntField(
           label = "Day",
           value = state.monthday,
-          onValueChange = {
-            state.monthday = it
-          },
+          onValueChange = { state.monthday = it },
           minValue = 1,
           maxValue = 28,
         )
       }
       TodoFrequencyName.Once -> {}
+      TodoFrequencyName.XDays -> {
+        BoundedIntField(
+          label = "Days",
+          value = state.days,
+          onValueChange = { state.days = it },
+          minValue = 1,
+          maxValue = 28,
+        )
+      }
       TodoFrequencyName.XMonthYWeekZWeekday -> {
         BoundedIntField(
           label = "Month",
           value = state.month,
-          onValueChange = {
-            state.month = it
-          },
+          onValueChange = { state.month = it },
           minValue = 1,
           maxValue = 12,
         )
         BoundedIntField(
           label = "Week",
           value = state.week,
-          onValueChange = {
-            state.week = it
-          },
+          onValueChange = { state.week = it },
           minValue = 1,
           maxValue = 5,
         )
         EnumDropdown(
           label = "Weekday",
           value = state.weekday,
-          onValueChange = {
-            state.weekday = it
-          },
+          onValueChange = { state.weekday = it },
         )
       }
     }
@@ -216,9 +206,7 @@ fun TodoForm(
     DateTextField(
       label = "Start Date",
       value = state.startDate,
-      onValueChange = {
-        state.startDate = it
-      },
+      onValueChange = { state.startDate = it },
     )
 
     Spacer(Modifier.height(10.dp))
@@ -228,9 +216,7 @@ fun TodoForm(
       value = state.advanceDisplayDays,
       minValue = 0,
       maxValue = 999,
-      onValueChange = {
-        state.advanceDisplayDays = it
-      }
+      onValueChange = { state.advanceDisplayDays = it }
     )
 
     Spacer(Modifier.height(10.dp))
@@ -240,9 +226,7 @@ fun TodoForm(
       value = state.expireDisplayDays,
       minValue = 0,
       maxValue = 999,
-      onValueChange = {
-        state.expireDisplayDays = it
-      }
+      onValueChange = { state.expireDisplayDays = it }
     )
 
     Spacer(Modifier.height(10.dp))

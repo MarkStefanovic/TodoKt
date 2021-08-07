@@ -13,52 +13,46 @@ data class Todo(
   val advanceDisplayDays: Int,
   val expireDisplayDays: Int,
 ) {
+  val days: Int?
+    get() =
+      when (frequency) {
+        is TodoFrequency.XDays -> frequency.days
+        else -> null
+      }
+
   val month: Int?
     get() =
       when (frequency) {
-        is TodoFrequency.Daily -> null
-        is TodoFrequency.Monthly -> null
-        is TodoFrequency.Once -> null
-        is TodoFrequency.Weekly -> null
         is TodoFrequency.XMonthYWeekZWeekday -> frequency.month
         is TodoFrequency.Yearly -> frequency.month
+        else -> null
       }
 
   val monthday: Int?
     get() =
       when (frequency) {
-        is TodoFrequency.Daily -> null
         is TodoFrequency.Monthly -> frequency.monthday
-        is TodoFrequency.Once -> null
-        is TodoFrequency.Weekly -> null
-        is TodoFrequency.XMonthYWeekZWeekday -> null
         is TodoFrequency.Yearly -> frequency.day
+        else -> null
       }
 
   val week: Int?
     get() =
       when (frequency) {
-        is TodoFrequency.Daily -> null
-        is TodoFrequency.Monthly -> null
-        is TodoFrequency.Once -> null
-        is TodoFrequency.Weekly -> null
-        is TodoFrequency.Yearly -> null
         is TodoFrequency.XMonthYWeekZWeekday -> frequency.week
+        else -> null
       }
 
   val weekday: Weekday?
     get() =
       when (frequency) {
-        is TodoFrequency.Daily -> null
-        is TodoFrequency.Monthly -> null
-        is TodoFrequency.Once -> null
         is TodoFrequency.Weekly -> frequency.weekday
-        is TodoFrequency.Yearly -> null
         is TodoFrequency.XMonthYWeekZWeekday -> frequency.weekday
+        else -> null
       }
 
   fun daysUntil(refDate: LocalDate): Int =
-    nextDisplayWindow(refDate = refDate).nextDate.until(refDate).days
+    (nextDisplayWindow(refDate = refDate).nextDate.toEpochDay() - refDate.toEpochDay()).toInt()
 
   fun nextDate(refDate: LocalDate): LocalDate = nextDisplayWindow(refDate = refDate).nextDate
 
@@ -189,24 +183,26 @@ val holidays: List<Todo> =
       advanceDisplayDays = 14,
       expireDisplayDays = 3,
     ),
+    Todo(
+      todoId = -1,
+      description = "Independence Day",
+      note = "",
+      category = TodoCategory.Reminder,
+      frequency = TodoFrequency.Yearly(month = 7, day = 4),
+      startDate = LocalDate.of(1900, 1, 1),
+      lastDate = null,
+      advanceDisplayDays = 14,
+      expireDisplayDays = 3,
+    ),
+    Todo(
+      todoId = -1,
+      description = "Veterans Day",
+      note = "",
+      category = TodoCategory.Reminder,
+      frequency = TodoFrequency.Yearly(month = 11, day = 11),
+      startDate = LocalDate.of(1900, 1, 1),
+      lastDate = null,
+      advanceDisplayDays = 30,
+      expireDisplayDays = 7,
+    ),
   )
-
-fun getDefaultAdvanceDisplayDays(frequencyName: TodoFrequencyName): Int =
-  when (frequencyName) {
-    TodoFrequencyName.Daily -> 0
-    TodoFrequencyName.Monthly -> 7
-    TodoFrequencyName.Once -> 14
-    TodoFrequencyName.Weekly -> 0
-    TodoFrequencyName.XMonthYWeekZWeekday -> 363
-    TodoFrequencyName.Yearly -> 363
-  }
-
-fun getDefaultExpireDisplayDays(frequencyName: TodoFrequencyName): Int =
-  when (frequencyName) {
-    TodoFrequencyName.Daily -> 0
-    TodoFrequencyName.Monthly -> 7
-    TodoFrequencyName.Once -> 7
-    TodoFrequencyName.Weekly -> 6
-    TodoFrequencyName.XMonthYWeekZWeekday -> 363
-    TodoFrequencyName.Yearly -> 363
-  }

@@ -38,6 +38,10 @@ class ExposedTodoRepository : TodoRepository {
             it[this.frequency] = TodoFrequencyName.Weekly
             it[this.weekday] = frequency.weekday
           }
+          is TodoFrequency.XDays -> {
+            it[this.frequency] = TodoFrequencyName.XDays
+            it[this.day] = frequency.days
+          }
           is TodoFrequency.XMonthYWeekZWeekday -> {
             it[this.frequency] = TodoFrequencyName.XMonthYWeekZWeekday
             it[this.month] = frequency.month
@@ -92,6 +96,15 @@ class ExposedTodoRepository : TodoRepository {
           it[this.month] = todo.frequency.month
           it[this.monthday] = todo.frequency.day
         }
+        is TodoFrequency.Once -> {}
+        is TodoFrequency.XDays -> {
+          it[this.day] = todo.frequency.days
+        }
+        is TodoFrequency.XMonthYWeekZWeekday -> {
+          it[this.month] = todo.frequency.month
+          it[this.week] = todo.frequency.week
+          it[this.weekday] = todo.frequency.weekday
+        }
       }
     }
     return byId(todo.todoId)
@@ -116,6 +129,8 @@ private fun rowToDomain(row: ResultRow): Todo {
           day = row[TodoTable.day] ?: error("day is required."),
         )
       TodoFrequencyName.Once -> TodoFrequency.Once(date = row[TodoTable.startdate])
+      TodoFrequencyName.XDays ->
+        TodoFrequency.XDays(days = row[TodoTable.day] ?: error("day is required."))
       TodoFrequencyName.XMonthYWeekZWeekday ->
         TodoFrequency.XMonthYWeekZWeekday(
           month = row[TodoTable.month] ?: error("month is required."),
