@@ -148,7 +148,7 @@ fun TodoListView(
       state = listState,
     ) {
       todos.forEach { (dt, todos) ->
-        val daysUntil = todoListViewModel.refDate.toEpochDay() - dt.toEpochDay()
+        val daysUntil = dt.toEpochDay() - todoListViewModel.refDate.toEpochDay()
 
         stickyHeader {
           Text(

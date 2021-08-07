@@ -10,10 +10,10 @@ import domain.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 
-@ExperimentalMaterialApi
 @Composable
 @FlowPreview
 @ExperimentalUnitApi
+@ExperimentalMaterialApi
 @ExperimentalAnimationApi
 @ExperimentalFoundationApi
 @ExperimentalCoroutinesApi
@@ -23,8 +23,8 @@ fun MainView(todoListViewModel: TodoListViewModel) {
   when (val screen = screenState) {
     is Screen.Details ->
       TodoForm(
-        value = screen.todo,
-        onValueChange = { todo ->
+        state = remember { TodoFormState(value = screen.todo) },
+        onSave = { todo ->
           if (todo.todoId == Todo.defaultTodoId) {
             todoListViewModel.add(
               frequency = todo.frequency.name,

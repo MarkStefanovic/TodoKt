@@ -42,6 +42,7 @@ val koin = initKoin().koin
 
 @FlowPreview
 @ExperimentalUnitApi
+@ExperimentalMaterialApi
 @ExperimentalAnimationApi
 @ExperimentalCoroutinesApi
 @ExperimentalFoundationApi

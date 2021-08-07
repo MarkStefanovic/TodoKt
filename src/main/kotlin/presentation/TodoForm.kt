@@ -1,6 +1,5 @@
 package presentation
 
-import adapter.TodoTable.category
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -13,45 +12,86 @@ import domain.*
 import presentation.shared.*
 import java.time.LocalDate
 
+data class TodoFormState(val value: Todo) {
+  var title: String by mutableStateOf(if (value.todoId == -1) "Add Todo" else "Edit Todo")
+
+  var description by mutableStateOf(value.description)
+
+  var startDate: LocalDate by mutableStateOf(value.startDate)
+
+  var note: String by mutableStateOf(value.note)
+
+  var advanceDisplayDays: Int by mutableStateOf(value.advanceDisplayDays)
+
+  var expireDisplayDays: Int by mutableStateOf(value.expireDisplayDays)
+
+  var category: TodoCategory by mutableStateOf(value.category)
+
+  var frequencyName: TodoFrequencyName by mutableStateOf(value.frequency.name)
+
+  var month: Int by mutableStateOf(value.month ?: 1)
+
+  var monthday: Int by mutableStateOf(value.monthday ?: 1)
+
+  var week: Int by mutableStateOf(value.week ?: 1)
+
+  var weekday: Weekday by mutableStateOf(value.weekday ?: Weekday.Monday)
+
+  val frequency: TodoFrequency
+    get() =
+      when (frequencyName) {
+        TodoFrequencyName.Daily -> TodoFrequency.Daily
+        TodoFrequencyName.Monthly -> TodoFrequency.Monthly(monthday = monthday)
+        TodoFrequencyName.Once -> TodoFrequency.Once(date = startDate)
+        TodoFrequencyName.Weekly -> TodoFrequency.Weekly(weekday = weekday)
+        TodoFrequencyName.XMonthYWeekZWeekday ->
+          TodoFrequency.XMonthYWeekZWeekday(
+            month = month,
+            week = week,
+            weekday = weekday,
+          )
+        TodoFrequencyName.Yearly -> TodoFrequency.Yearly(month = month, day = monthday)
+      }
+
+  val todo: Todo
+    get() =
+      Todo(
+        todoId = value.todoId,
+        description = description,
+        startDate = startDate,
+        lastDate = null,
+        note = note,
+        advanceDisplayDays = advanceDisplayDays,
+        expireDisplayDays = expireDisplayDays,
+        category = category,
+        frequency = frequency,
+      )
+
+  fun reset() {
+    description = value.description
+    startDate = value.startDate
+    note = value.note
+    advanceDisplayDays = value.advanceDisplayDays
+    expireDisplayDays = value.expireDisplayDays
+    category = value.category
+    frequencyName = value.frequency.name
+    month = value.month ?: 1
+    monthday = value.monthday ?: 1
+    week = value.week ?: 1
+    weekday = value.weekday ?: Weekday.Monday
+  }
+}
+
 @ExperimentalUnitApi
 @Composable
 fun TodoForm(
-  value: Todo,
-  onValueChange: (Todo) -> Unit,
+  state: TodoFormState = remember { TodoFormState(value = Todo.default()) },
+  onSave: (Todo) -> Unit,
   onBack: () -> Unit,
 ) {
-  val isAddMode = value.todoId == -1
-
-  var description: String by remember { mutableStateOf(value.description) }
-  var startDate: LocalDate by remember { mutableStateOf(value.startDate) }
-  var note: String by remember { mutableStateOf(value.note) }
-  var advanceDisplayDays: Int by remember { mutableStateOf(value.advanceDisplayDays) }
-  var expireDisplayDays: Int by remember { mutableStateOf(value.expireDisplayDays) }
-  var todoCategory: TodoCategory by remember { mutableStateOf(value.category) }
-  var frequencyName: TodoFrequencyName by remember { mutableStateOf(value.frequency.name) }
-  var month: Int by remember { mutableStateOf(value.month ?: 1) }
-  var monthday: Int by remember { mutableStateOf(value.monthday ?: 1) }
-  var week: Int by remember { mutableStateOf(value.week ?: 1) }
-  var weekday: Weekday by remember { mutableStateOf(value.weekday ?: Weekday.Monday) }
-  val title = if (isAddMode) "Add Todo" else "Edit Todo"
-
-//  var advanceDisplayDays: Int by mutableStateOf(
-//    if (isAddMode) getDefaultAdvanceDisplayDays(frequencyName = frequencyName)
-//    else value.advanceDisplayDays
-//  )
-//
-//  var expireDisplayDays: Int by mutableStateOf(
-//    if (isAddMode) getDefaultExpireDisplayDays(frequencyName = frequencyName)
-//    else value.expireDisplayDays
-//  )
-
-//  println(
-//    "frequencyName = $frequencyName, advanceDisplayDays = $advanceDisplayDays, expireDisplayDays = $expireDisplayDays"
-//  )
-
   Column(modifier = Modifier.padding(10.dp)) {
     TopAppBar(
-      title = { Text(title) },
+      title = { Text(state.title) },
       navigationIcon = {
         IconButton(onClick = onBack) {
           Icon(imageVector = Icons.Default.ArrowBack, contentDescription = null)
@@ -62,16 +102,20 @@ fun TodoForm(
     Spacer(Modifier.height(10.dp))
 
     TextField(
-      value = description,
-      onValueChange = { txt -> description = txt },
+      value = state.description,
+      onValueChange = {
+        state.description = it
+      },
       label = { Text("Description") }
     )
 
     Spacer(modifier = Modifier.height(10.dp))
 
     TextField(
-      value = note,
-      onValueChange = { txt -> note = txt },
+      value = state.note,
+      onValueChange = {
+        state.note = it
+      },
       label = { Text("Note") },
     )
 
@@ -79,31 +123,32 @@ fun TodoForm(
 
     EnumDropdown(
       label = "Category",
-      value = todoCategory,
-      onValueChange = { todoCategory = it },
+      value = state.category,
+      onValueChange = {
+        state.category = it
+      },
     )
 
     Spacer(Modifier.height(10.dp))
 
     EnumDropdown(
       label = "Frequency",
-      value = frequencyName,
+      value = state.frequency.name,
       onValueChange = {
-        frequencyName = it
+        state.frequencyName = it
       },
     )
 
     Spacer(Modifier.height(10.dp))
 
-    when (frequencyName) {
+    when (state.frequencyName) {
       TodoFrequencyName.Daily -> {}
       TodoFrequencyName.Monthly ->
         BoundedIntField(
           label = "Month Day",
-          value = monthday,
+          value = state.monthday,
           onValueChange = {
-            println("monthday set to $it")
-            monthday = it
+            state.monthday = it
           },
           minValue = 1,
           maxValue = 28,
@@ -111,29 +156,26 @@ fun TodoForm(
       TodoFrequencyName.Weekly ->
         EnumDropdown(
           label = "Weekday",
-          value = weekday,
+          value = state.weekday,
           onValueChange = {
-            println("weekday = $it")
-            weekday = it
+            state.weekday = it
           }
         )
       TodoFrequencyName.Yearly -> {
         BoundedIntField(
           label = "Month",
-          value = month,
+          value = state.month,
           onValueChange = {
-            println("month set to $it")
-            month = it
+            state.month = it
           },
           minValue = 1,
           maxValue = 12,
         )
         BoundedIntField(
           label = "Day",
-          value = monthday,
+          value = state.monthday,
           onValueChange = {
-            println("monthday set to $it")
-            monthday = it
+            state.monthday = it
           },
           minValue = 1,
           maxValue = 28,
@@ -143,19 +185,29 @@ fun TodoForm(
       TodoFrequencyName.XMonthYWeekZWeekday -> {
         BoundedIntField(
           label = "Month",
-          value = month,
-          onValueChange = { month = it },
+          value = state.month,
+          onValueChange = {
+            state.month = it
+          },
           minValue = 1,
           maxValue = 12,
         )
         BoundedIntField(
           label = "Week",
-          value = week,
-          onValueChange = { week = it },
+          value = state.week,
+          onValueChange = {
+            state.week = it
+          },
           minValue = 1,
           maxValue = 5,
         )
-        EnumDropdown(label = "Weekday", value = weekday, onValueChange = { weekday = it })
+        EnumDropdown(
+          label = "Weekday",
+          value = state.weekday,
+          onValueChange = {
+            state.weekday = it
+          },
+        )
       }
     }
 
@@ -163,99 +215,46 @@ fun TodoForm(
 
     DateTextField(
       label = "Start Date",
-      value = startDate,
-      onValueChange = { dt -> startDate = dt },
+      value = state.startDate,
+      onValueChange = {
+        state.startDate = it
+      },
     )
 
     Spacer(Modifier.height(10.dp))
 
     BoundedIntField(
       label = "Advance Display Days",
-      value = advanceDisplayDays,
+      value = state.advanceDisplayDays,
       minValue = 0,
       maxValue = 999,
-      onValueChange = { advanceDisplayDays = it }
+      onValueChange = {
+        state.advanceDisplayDays = it
+      }
     )
 
     Spacer(Modifier.height(10.dp))
 
     BoundedIntField(
       label = "Expire Display Days",
-      value = expireDisplayDays,
+      value = state.expireDisplayDays,
       minValue = 0,
       maxValue = 999,
-      onValueChange = { expireDisplayDays = it }
+      onValueChange = {
+        state.expireDisplayDays = it
+      }
     )
 
     Spacer(Modifier.height(10.dp))
 
     Row {
-      Button(
-        onClick = {
-          println(
-            "Before Reset pressed; description: $description, category: $category, " +
-              "startdate: $startDate, note: $note, advanceDisplayDays: $advanceDisplayDays, " +
-              "expireDisplayDays: $expireDisplayDays"
-          )
-
-          description = value.description
-          todoCategory = value.category
-          //          category = value.category.toString()
-          startDate = value.startDate
-          note = value.note
-          advanceDisplayDays = value.advanceDisplayDays
-          expireDisplayDays = value.expireDisplayDays
-          month = value.month ?: 1
-          monthday = value.monthday ?: 1
-          weekday = value.weekday ?: Weekday.Monday
-
-          println(
-            "After Reset pressed; description: $description, category: $category, " +
-              "startdate: $startDate, note: $note, advanceDisplayDays: $advanceDisplayDays, " +
-              "expireDisplayDays: $expireDisplayDays"
-          )
-        }
-      ) { Text("Reset") }
+      Button(onClick = { state.reset() }) { Text("Reset") }
 
       Spacer(Modifier.width(3.dp))
 
       Button(
         onClick = {
-          val todoFrequency =
-            when (frequencyName) {
-              TodoFrequencyName.Daily -> TodoFrequency.Daily
-              TodoFrequencyName.Monthly -> TodoFrequency.Monthly(monthday = monthday)
-              TodoFrequencyName.Once -> TodoFrequency.Once(startDate)
-              TodoFrequencyName.Weekly ->
-                TodoFrequency.Weekly(
-                  weekday = weekday,
-                )
-              TodoFrequencyName.Yearly ->
-                TodoFrequency.Yearly(
-                  month = month,
-                  day = monthday,
-                )
-              TodoFrequencyName.XMonthYWeekZWeekday ->
-                TodoFrequency.XMonthYWeekZWeekday(
-                  month = month,
-                  week = week,
-                  weekday = weekday,
-                )
-            }
-
-          val todo =
-            Todo(
-              todoId = value.todoId,
-              description = description,
-              category = todoCategory,
-              note = note,
-              frequency = todoFrequency,
-              startDate = startDate,
-              lastDate = value.lastDate,
-              advanceDisplayDays = advanceDisplayDays,
-              expireDisplayDays = expireDisplayDays,
-            )
-          onValueChange(todo)
+          onSave(state.todo)
           onBack()
         }
       ) { Text("Save") }
