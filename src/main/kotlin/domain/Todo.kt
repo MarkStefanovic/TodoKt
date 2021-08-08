@@ -13,13 +13,6 @@ data class Todo(
   val advanceDisplayDays: Int,
   val expireDisplayDays: Int,
 ) {
-  val days: Int?
-    get() =
-      when (frequency) {
-        is TodoFrequency.XDays -> frequency.days
-        else -> null
-      }
-
   val month: Int?
     get() =
       when (frequency) {
@@ -28,10 +21,11 @@ data class Todo(
         else -> null
       }
 
-  val monthday: Int?
+  val day: Int?
     get() =
       when (frequency) {
         is TodoFrequency.Monthly -> frequency.monthday
+        is TodoFrequency.XDays -> frequency.days
         is TodoFrequency.Yearly -> frequency.day
         else -> null
       }

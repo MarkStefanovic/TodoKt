@@ -31,29 +31,27 @@ data class TodoFormState(val value: Todo) {
 
   var month: Int by mutableStateOf(value.month ?: 1)
 
-  var monthday: Int by mutableStateOf(value.monthday ?: 1)
+  var day: Int by mutableStateOf(value.day ?: 1)
 
   var week: Int by mutableStateOf(value.week ?: 1)
 
   var weekday: Weekday by mutableStateOf(value.weekday ?: Weekday.Monday)
 
-  var days: Int by mutableStateOf(value.days ?: 5)
-
   val frequency: TodoFrequency
     get() =
       when (frequencyName) {
         TodoFrequencyName.Daily -> TodoFrequency.Daily
-        TodoFrequencyName.Monthly -> TodoFrequency.Monthly(monthday = monthday)
+        TodoFrequencyName.Monthly -> TodoFrequency.Monthly(monthday = day)
         TodoFrequencyName.Once -> TodoFrequency.Once(date = startDate)
         TodoFrequencyName.Weekly -> TodoFrequency.Weekly(weekday = weekday)
-        TodoFrequencyName.XDays -> TodoFrequency.XDays(days = days)
+        TodoFrequencyName.XDays -> TodoFrequency.XDays(days = day)
         TodoFrequencyName.XMonthYWeekZWeekday ->
           TodoFrequency.XMonthYWeekZWeekday(
             month = month,
             week = week,
             weekday = weekday,
           )
-        TodoFrequencyName.Yearly -> TodoFrequency.Yearly(month = month, day = monthday)
+        TodoFrequencyName.Yearly -> TodoFrequency.Yearly(month = month, day = day)
       }
 
   val todo: Todo
@@ -79,7 +77,7 @@ data class TodoFormState(val value: Todo) {
     category = value.category
     frequencyName = value.frequency.name
     month = value.month ?: 1
-    monthday = value.monthday ?: 1
+    day = value.day ?: 1
     week = value.week ?: 1
     weekday = value.weekday ?: Weekday.Monday
   }
@@ -141,8 +139,8 @@ fun TodoForm(
       TodoFrequencyName.Monthly ->
         BoundedIntField(
           label = "Month Day",
-          value = state.monthday,
-          onValueChange = { state.monthday = it },
+          value = state.day,
+          onValueChange = { state.day = it },
           minValue = 1,
           maxValue = 28,
         )
@@ -162,8 +160,8 @@ fun TodoForm(
         )
         BoundedIntField(
           label = "Day",
-          value = state.monthday,
-          onValueChange = { state.monthday = it },
+          value = state.day,
+          onValueChange = { state.day = it },
           minValue = 1,
           maxValue = 28,
         )
@@ -172,10 +170,10 @@ fun TodoForm(
       TodoFrequencyName.XDays -> {
         BoundedIntField(
           label = "Days",
-          value = state.days,
-          onValueChange = { state.days = it },
+          value = state.day,
+          onValueChange = { state.day = it },
           minValue = 1,
-          maxValue = 28,
+          maxValue = 9999,
         )
       }
       TodoFrequencyName.XMonthYWeekZWeekday -> {

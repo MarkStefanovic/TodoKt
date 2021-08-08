@@ -25,7 +25,6 @@ class TodoListViewModel(
       .debounce(300)
       .flatMapLatest { txt ->
         _todos.map { todoList ->
-          println("Applying filter, $txt, to $todoList")
           todoList
             .filter { todo -> todo.meetsCriteria(filter = filter.value, refDate = refDate) }
             .sortedBy { todo -> todo.nextDate(refDate = refDate) }
@@ -110,7 +109,6 @@ class TodoListViewModel(
   }
 
   fun refresh() {
-    println("Refreshing...")
     _todos.value = db.exec { repository.all() }
   }
 
@@ -119,7 +117,6 @@ class TodoListViewModel(
   }
 
   fun update(todo: Todo) {
-    println("update: $todo")
     db.exec { repository.update(todo = todo) }
     refresh()
   }

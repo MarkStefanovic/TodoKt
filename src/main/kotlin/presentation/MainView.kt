@@ -34,7 +34,7 @@ fun MainView(todoListViewModel: TodoListViewModel) {
               startDate = todo.startDate,
               advanceDisplayDays = todo.advanceDisplayDays,
               expireDisplayDays = todo.expireDisplayDays,
-              monthday = todo.monthday,
+              monthday = todo.day,
               weekday = todo.weekday,
               week = todo.week,
               month = todo.month,
