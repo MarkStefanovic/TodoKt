@@ -6,6 +6,7 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.ExperimentalUnitApi
@@ -154,7 +155,13 @@ fun TodoListView(
           Text(
             text =
             "$dt (${dt.dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.US)}; $daysUntil days)",
-            color = MaterialTheme.colors.secondary,
+            color = if (daysUntil > 0) {
+              MaterialTheme.colors.secondary
+            } else if (daysUntil == 0L) {
+              Color(220, 220, 0)
+            } else {
+              Color(255, 0, 50)
+            },
             modifier = Modifier.padding(bottom = 5.dp),
           )
         }
