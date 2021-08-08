@@ -255,20 +255,25 @@ sealed class TodoFrequency {
       advanceDisplayDays: Int,
       expireDisplayDays: Int,
       refDate: LocalDate,
-    ): DisplayWindow {
-      val nextDate = if (refDate <= startDate) {
-        startDate
-      } else {
-        val daysSinceStart = refDate.toEpochDay() - startDate.toEpochDay()
-        val daysToAdd = days - daysSinceStart.mod(days)
-        refDate.plusDays(daysToAdd.toLong())
-      }
-      return DisplayWindow(
-        nextDate = nextDate,
-        displayStartDate = nextDate.minusDays(advanceDisplayDays.toLong()),
-        displayEndDate = nextDate.plusDays(expireDisplayDays.toLong()),
+    ): DisplayWindow =
+      getNextDisplayStartDate(
+        refDate = refDate,
+        lastDate = lastDate,
+        getPriorDate = { dt ->
+          val daysSinceStart = dt.toEpochDay() - startDate.toEpochDay()
+          val daysToAdd = days - daysSinceStart.mod(days)
+          val nextDate = dt.plusDays(daysToAdd.toLong())
+          nextDate.minusDays(days.toLong())
+        },
+        getNextDate = { dt ->
+          val daysSinceStart = dt.toEpochDay() - startDate.toEpochDay()
+          val daysToAdd = days - daysSinceStart.mod(days)
+          dt.plusDays(daysToAdd.toLong())
+        },
+        advanceDays = advanceDisplayDays,
+        expireDays = expireDisplayDays,
+        startDate = startDate,
       )
-    }
   }
 
   data class Yearly(
