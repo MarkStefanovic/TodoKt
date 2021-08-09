@@ -158,9 +158,9 @@ fun TodoListView(
             color = if (daysUntil > 0) {
               MaterialTheme.colors.secondary
             } else if (daysUntil == 0L) {
-              Color(220, 220, 0)
+              Color.Yellow
             } else {
-              Color(255, 0, 50)
+              Color.Red
             },
             modifier = Modifier.padding(bottom = 5.dp),
           )

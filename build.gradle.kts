@@ -2,13 +2,12 @@ import org.jetbrains.compose.compose
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-val decomposeVersion = "0.2.6"
 val exposedVersion = "0.32.1"
 val koinVersion = "3.1.2"
 
 plugins {
-    kotlin("jvm") version "1.5.10"
-    id("org.jetbrains.compose") version "0.4.0"
+    kotlin("jvm") version "1.5.21"
+    id("org.jetbrains.compose") version "1.0.0-alpha4-build310"
     id("org.jmailen.kotlinter") version "3.4.5"
 }
 
@@ -19,6 +18,7 @@ repositories {
     jcenter()
     mavenCentral()
     maven { url = uri("https://maven.pkg.jetbrains.space/public/p/compose/dev") }
+    google()
 }
 
 dependencies {
@@ -37,6 +37,9 @@ dependencies {
     implementation("io.insert-koin:koin-core:$koinVersion")
 //    testImplementation("io.insert-koin:koin-test:$koinVersion")
 //    testImplementation("io.insert-koin:koin-test-junit5:$koinVersion")
+
+    implementation("androidx.annotation:annotation:1.2.0")
+
 }
 
 kotlinter {

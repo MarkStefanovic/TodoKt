@@ -1,12 +1,11 @@
 import adapter.*
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.desktop.Window
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.ExperimentalUnitApi
-import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.*
+import androidx.compose.ui.unit.*
+import androidx.compose.ui.window.*
 import domain.TodoRepository
 import domain.holidays
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -31,9 +30,7 @@ val appModule = module {
     }
     Db(url = "jdbc:sqlite:./todo.db", driver = "org.sqlite.JDBC")
   }
-  single {
-    ExposedTodoRepository() as TodoRepository
-  }
+  single { ExposedTodoRepository() as TodoRepository }
 }
 
 fun initKoin() = startKoin { modules(appModule) }
@@ -44,9 +41,10 @@ val koin = initKoin().koin
 @ExperimentalUnitApi
 @ExperimentalMaterialApi
 @ExperimentalAnimationApi
+@ExperimentalComposeUiApi
 @ExperimentalCoroutinesApi
 @ExperimentalFoundationApi
-fun main() {
+fun main() = application {
   val db = koin.get<Db>()
   val todoRepository = koin.get<TodoRepository>()
 
@@ -73,7 +71,19 @@ fun main() {
       repository = todoRepository,
     )
 
-  return Window(title = "Todos", size = IntSize(600, 830)) {
+  val state =
+    rememberWindowState(
+      width = 600.dp, // use Dp.Unspecified to auto-fit
+      height = 900.dp,
+      position = WindowPosition.Aligned(Alignment.TopStart),
+    )
+
+  Window(
+    onCloseRequest = ::exitApplication,
+    state = state,
+    title = "Todos",
+    resizable = false,
+  ) {
     MaterialTheme(colors = darkColors()) {
       Surface(
         color = MaterialTheme.colors.surface,
