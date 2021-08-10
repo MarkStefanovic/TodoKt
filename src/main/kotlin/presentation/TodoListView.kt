@@ -11,8 +11,7 @@ import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.ExperimentalUnitApi
 import androidx.compose.ui.unit.dp
-import domain.Todo
-import domain.TodoCategory
+import domain.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import presentation.TodoListViewItem
@@ -173,7 +172,13 @@ fun TodoListView(
           TodoListViewItem(
             todo = todo,
             onEdit = onEditButtonClick,
-            onDone = { todoListViewModel.markComplete(todo.todoId) },
+            onDone = {
+              if (it.frequency is TodoFrequency.Once) {
+                todoListViewModel.delete(it.todoId)
+              } else {
+                todoListViewModel.markComplete(todo.todoId)
+              }
+            },
             onDelete = {
               confirmationDialogState =
                 ConfirmationDialogState(
