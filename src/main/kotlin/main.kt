@@ -1,5 +1,6 @@
 import adapter.*
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.desktop.DesktopMaterialTheme
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.*
@@ -84,7 +85,7 @@ fun main() = application {
     title = "Todos",
     resizable = false,
   ) {
-    MaterialTheme(colors = darkColors()) {
+    DesktopMaterialTheme(colors = darkColors()) {
       Surface(
         color = MaterialTheme.colors.surface,
         contentColor = contentColorFor(MaterialTheme.colors.surface),

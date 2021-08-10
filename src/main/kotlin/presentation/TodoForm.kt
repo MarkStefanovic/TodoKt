@@ -1,11 +1,15 @@
 package presentation
 
+import androidx.compose.foundation.ContextMenuDataProvider
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.*
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ContextMenuItem
 import androidx.compose.ui.unit.ExperimentalUnitApi
 import androidx.compose.ui.unit.dp
 import domain.*
@@ -83,6 +87,8 @@ data class TodoFormState(val value: Todo) {
   }
 }
 
+@ExperimentalComposeUiApi
+@ExperimentalFoundationApi
 @ExperimentalUnitApi
 @Composable
 fun TodoForm(
@@ -102,19 +108,37 @@ fun TodoForm(
 
     Spacer(Modifier.height(10.dp))
 
-    TextField(
-      value = state.description,
-      onValueChange = { state.description = it },
-      label = { Text("Description") }
-    )
+    ContextMenuDataProvider(
+      items = {
+        listOf(
+          ContextMenuItem("Clear") { state.description = "" },
+          ContextMenuItem("Reset") { state.description = state.value.description },
+        )
+      }
+    ) {
+      TextField(
+        value = state.description,
+        onValueChange = { state.description = it },
+        label = { Text("Description") }
+      )
+    }
 
     Spacer(modifier = Modifier.height(10.dp))
 
-    TextField(
-      value = state.note,
-      onValueChange = { state.note = it },
-      label = { Text("Note") },
-    )
+    ContextMenuDataProvider(
+      items = {
+        listOf(
+          ContextMenuItem("Clear") { state.note = "" },
+          ContextMenuItem("Reset") { state.note = state.value.note },
+        )
+      }
+    ) {
+      TextField(
+        value = state.note,
+        onValueChange = { state.note = it },
+        label = { Text("Note") },
+      )
+    }
 
     Spacer(Modifier.height(10.dp))
 
