@@ -38,10 +38,12 @@ fun MainView(
         request = todoFormRequest,
       )
     }
-    Screen.List ->
+    Screen.List -> {
+      todoListRequest.refresh()
       TodoListView(
         stateFlow = listViewStateFlow,
         request = todoListRequest,
       )
+    }
   }
 }

@@ -14,7 +14,6 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.launch
 import org.jetbrains.exposed.sql.exists
 import org.koin.core.context.startKoin
 import org.koin.dsl.module
@@ -138,9 +137,9 @@ fun main() = application {
       events = navigationEvents,
     )
 
-  scope.launch {
-    todoListEvents.emit(TodoListViewMessage.Refresh)
-  }
+//  scope.launch {
+//    todoListEvents.emit(TodoListViewMessage.Refresh)
+//  }
 
   Window(
     onCloseRequest = ::exitApplication,
