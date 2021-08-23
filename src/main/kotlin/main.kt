@@ -11,11 +11,23 @@ import domain.TodoRepository
 import domain.holidays
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.InternalCoroutinesApi
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.launch
 import org.jetbrains.exposed.sql.exists
 import org.koin.core.context.startKoin
 import org.koin.dsl.module
 import presentation.MainView
+import presentation.MainViewModel
+import presentation.NavigationMessage
+import presentation.NavigationRequest
+import presentation.TodoFormMessage
+import presentation.TodoFormRequest
+import presentation.TodoFormViewModel
+import presentation.TodoListViewMessage
 import presentation.TodoListViewModel
+import presentation.TodoListViewRequest
 import java.io.File
 
 @Suppress("USELESS_CAST")
@@ -38,6 +50,7 @@ fun initKoin() = startKoin { modules(appModule) }
 
 val koin = initKoin().koin
 
+@InternalCoroutinesApi
 @FlowPreview
 @ExperimentalUnitApi
 @ExperimentalMaterialApi
@@ -48,6 +61,8 @@ val koin = initKoin().koin
 fun main() = application {
   val db = koin.get<Db>()
   val todoRepository = koin.get<TodoRepository>()
+
+  val scope = MainScope()
 
   db.exec {
     if (!TodoTable.exists()) {
@@ -66,10 +81,46 @@ fun main() = application {
     }
   }
 
-  val todoListViewModel =
-    TodoListViewModel(
+  val navigationEvents = MutableSharedFlow<NavigationMessage>()
+
+  val navigationRequest =
+    NavigationRequest(
+      scope = scope,
+      events = navigationEvents,
+    )
+
+  val todoFormEvents = MutableSharedFlow<TodoFormMessage>()
+
+  val todoFormRequest =
+    TodoFormRequest(
+      scope = MainScope(),
+      events = todoFormEvents,
+    )
+
+  val todoFormViewModel =
+    TodoFormViewModel(
+      scope = scope,
       db = db,
       repository = todoRepository,
+      events = todoFormEvents,
+      navigationRequest = navigationRequest,
+    )
+
+  val todoListEvents = MutableSharedFlow<TodoListViewMessage>()
+
+  val todoListRequest =
+    TodoListViewRequest(
+      scope = scope,
+      event = todoListEvents,
+    )
+
+  val todoListViewModel =
+    TodoListViewModel(
+      scope = scope,
+      db = db,
+      repository = todoRepository,
+      events = todoListEvents,
+      navigationRequest = navigationRequest,
     )
 
   val state =
@@ -78,6 +129,18 @@ fun main() = application {
       height = 900.dp,
       position = WindowPosition.Aligned(Alignment.TopStart),
     )
+
+  val mainViewModel =
+    MainViewModel(
+      scope = scope,
+      todoListViewModel = todoListViewModel,
+      todoFormViewModel = todoFormViewModel,
+      events = navigationEvents,
+    )
+
+  scope.launch {
+    todoListEvents.emit(TodoListViewMessage.Refresh)
+  }
 
   Window(
     onCloseRequest = ::exitApplication,
@@ -90,7 +153,15 @@ fun main() = application {
         color = MaterialTheme.colors.surface,
         contentColor = contentColorFor(MaterialTheme.colors.surface),
         modifier = Modifier.fillMaxSize(),
-      ) { MainView(todoListViewModel = todoListViewModel) }
+      ) {
+        MainView(
+          stateFlow = mainViewModel.state,
+          listViewStateFlow = todoListViewModel.state,
+          formViewStateFlow = todoFormViewModel.state,
+          todoFormRequest = todoFormRequest,
+          todoListRequest = todoListRequest,
+        )
+      }
     }
   }
 }

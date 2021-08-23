@@ -19,7 +19,6 @@ import java.time.LocalDate
 @Composable
 fun DateTextField(label: String, value: LocalDate, onValueChange: (LocalDate) -> Unit) {
   var textFieldValueState by remember { mutableStateOf(TextFieldValue(text = value.toString())) }
-//  val textFieldValue = textFieldValueState.copy(text = value.toString())
 
   var isValidDate: Boolean by remember { mutableStateOf(true) }
 

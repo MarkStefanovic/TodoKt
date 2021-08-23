@@ -200,11 +200,19 @@ sealed class TodoFrequency {
       expireDisplayDays: Int,
       refDate: LocalDate,
     ) =
-      DisplayWindow(
-        nextDate = startDate,
-        displayStartDate = startDate.minusDays(advanceDisplayDays.toLong()),
-        displayEndDate = startDate.plusDays(expireDisplayDays.toLong()),
-      )
+      if (lastDate == null) {
+        DisplayWindow(
+          nextDate = startDate,
+          displayStartDate = startDate.minusDays(advanceDisplayDays.toLong()),
+          displayEndDate = startDate.plusDays(expireDisplayDays.toLong()),
+        )
+      } else {
+        DisplayWindow(
+          nextDate = startDate,
+          displayStartDate = LocalDate.of(9999, 12, 31),
+          displayEndDate = LocalDate.of(9999, 12, 31),
+        )
+      }
   }
 
   data class Weekly(val weekday: Weekday) : TodoFrequency() {

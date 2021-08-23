@@ -24,6 +24,8 @@ fun BoundedIntField(
 ) {
   var state by remember { mutableStateOf(TextFieldValue(text = value.toString())) }
 
+  val textValue = state.copy(text = value.toString())
+
   var errorMessage: String? by remember { mutableStateOf(null) }
 
   val isValid = errorMessage == null
@@ -40,10 +42,9 @@ fun BoundedIntField(
         ) { Text(text = msg, modifier = Modifier.padding(10.dp)) }
       }
     },
-//    contentAlignment = Alignment.Center,
   ) {
     TextField(
-      value = state,
+      value = textValue,
       onValueChange = {
         state = it
 

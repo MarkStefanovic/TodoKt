@@ -1,9 +1,31 @@
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.*
-import androidx.compose.material.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.AlertDialog
+import androidx.compose.material.Button
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
+import androidx.compose.material.TextField
+import androidx.compose.material.TriStateCheckbox
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -11,13 +33,14 @@ import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.ExperimentalUnitApi
 import androidx.compose.ui.unit.dp
-import domain.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.StateFlow
 import presentation.TodoListViewItem
-import presentation.TodoListViewModel
+import presentation.TodoListViewRequest
+import presentation.TodoListViewState
+import presentation.shared.ConfirmationDialogState
 import presentation.shared.EnumDropdown
-import java.time.LocalDate
 import java.time.format.TextStyle
 import java.util.*
 
@@ -29,28 +52,15 @@ import java.util.*
 @ExperimentalFoundationApi
 @ExperimentalCoroutinesApi
 fun TodoListView(
-  todoListViewModel: TodoListViewModel,
-  onAddButtonClick: () -> Unit,
-  onEditButtonClick: (Todo) -> Unit,
+  stateFlow: StateFlow<TodoListViewState>,
+  request: TodoListViewRequest,
 ) {
   val listState = rememberLazyListState()
 
-  val todos: Map<LocalDate, List<Todo>> by todoListViewModel.todos.collectAsState()
-
-  val startDateOnOrBeforeToday: MutableState<ToggleableState> = remember {
-    mutableStateOf(todoListViewModel.filter.value.toggleableState)
-  }
-
-  val category: MutableState<TodoCategory> = remember {
-    mutableStateOf(todoListViewModel.filter.value.category)
-  }
+  val state by stateFlow.collectAsState()
 
   var confirmationDialogState: ConfirmationDialogState by remember {
     mutableStateOf(ConfirmationDialogState.initial())
-  }
-
-  var searchText: String? by remember {
-    mutableStateOf(todoListViewModel.filter.value.descriptionLike)
   }
 
   if (confirmationDialogState.display) {
@@ -61,7 +71,7 @@ fun TodoListView(
       confirmButton = {
         Button(
           onClick = {
-            todoListViewModel.delete(confirmationDialogState.todoId)
+            request.delete(confirmationDialogState.todoId)
             confirmationDialogState = ConfirmationDialogState.initial()
           }
         ) { Text("Yes") }
@@ -77,10 +87,9 @@ fun TodoListView(
 
   Column(modifier = Modifier.padding(10.dp)) {
     TextField(
-      value = searchText ?: "",
+      value = state.todoFilter.descriptionLike ?: "",
       onValueChange = { txt ->
-        searchText = txt
-        todoListViewModel.filterDescription(txt)
+        request.filterByDescription(txt)
       },
       label = { Text("Search", modifier = Modifier.fillMaxHeight()) },
       maxLines = 1,
@@ -91,7 +100,7 @@ fun TodoListView(
 
     Row(modifier = Modifier.fillMaxWidth()) {
       Button(
-        onClick = { todoListViewModel.refresh() },
+        onClick = request::refresh,
         modifier = Modifier.padding(top = 10.dp),
       ) { Text("Refresh", fontWeight = FontWeight.Bold) }
 
@@ -102,20 +111,17 @@ fun TodoListView(
       Spacer(Modifier.width(5.dp))
 
       TriStateCheckbox(
-        state = startDateOnOrBeforeToday.value,
+        state = state.todoFilter.toggleableState,
         onClick = {
-          when (todoListViewModel.filter.value.toggleableState) {
+          when (state.todoFilter.toggleableState) {
             ToggleableState.Off -> {
-              startDateOnOrBeforeToday.value = ToggleableState.Indeterminate
-              todoListViewModel.filterStartDateOnOrAfterToday(null)
+              request.filterByIsDue(null)
             }
             ToggleableState.On -> {
-              startDateOnOrBeforeToday.value = ToggleableState.Off
-              todoListViewModel.filterStartDateOnOrAfterToday(false)
+              request.filterByIsDue(false)
             }
             ToggleableState.Indeterminate -> {
-              startDateOnOrBeforeToday.value = ToggleableState.On
-              todoListViewModel.filterStartDateOnOrAfterToday(true)
+              request.filterByIsDue(true)
             }
           }
         },
@@ -126,18 +132,15 @@ fun TodoListView(
 
       EnumDropdown(
         label = "Category",
-        value = category.value,
-        onValueChange = {
-          category.value = it
-          todoListViewModel.filterCategory(category = it)
-        },
+        value = state.todoFilter.category,
+        onValueChange = request::filterByCategory,
         modifier = Modifier.size(width = 200.dp, height = 60.dp),
       )
 
       Spacer(Modifier.weight(1f))
 
       Button(
-        onClick = onAddButtonClick,
+        onClick = request::goToAddForm,
         modifier = Modifier.padding(top = 10.dp),
       ) { Text("Add", fontWeight = FontWeight.Bold) }
     }
@@ -147,8 +150,8 @@ fun TodoListView(
     LazyColumn(
       state = listState,
     ) {
-      todos.forEach { (dt, todos) ->
-        val daysUntil = dt.toEpochDay() - todoListViewModel.refDate.toEpochDay()
+      state.todos.forEach { (dt, todos) ->
+        val daysUntil = dt.toEpochDay() - state.refDate.toEpochDay()
 
         stickyHeader {
           Text(
@@ -171,13 +174,9 @@ fun TodoListView(
         ) { todo ->
           TodoListViewItem(
             todo = todo,
-            onEdit = onEditButtonClick,
+            onEdit = request::goToEditForm,
             onDone = {
-              if (it.frequency is TodoFrequency.Once) {
-                todoListViewModel.delete(it.todoId)
-              } else {
-                todoListViewModel.markComplete(todo.todoId)
-              }
+              request.markComplete(todo.todoId)
             },
             onDelete = {
               confirmationDialogState =
@@ -192,20 +191,5 @@ fun TodoListView(
         }
       }
     }
-  }
-}
-
-data class ConfirmationDialogState(
-  val message: String,
-  val todoId: Int,
-  val display: Boolean,
-) {
-  companion object {
-    fun initial() =
-      ConfirmationDialogState(
-        message = "",
-        todoId = -1,
-        display = false,
-      )
   }
 }

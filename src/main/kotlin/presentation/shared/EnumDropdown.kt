@@ -29,8 +29,6 @@ inline fun <reified T : Enum<T>> EnumDropdown(
       value = state.text,
       onValueChange = {},
       label = { Text(label) },
-      //      label = { Text(label, fontSize = 10.sp) },
-      //      textStyle = TextStyle(fontSize = 12.sp),
       trailingIcon = {
         Icon(
           Icons.Filled.ArrowDropDown,

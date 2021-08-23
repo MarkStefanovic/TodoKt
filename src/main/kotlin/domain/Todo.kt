@@ -77,11 +77,11 @@ data class Todo(
         description = "",
         category = TodoCategory.Task,
         note = "",
-        frequency = TodoFrequency.Daily,
+        frequency = TodoFrequency.Once(LocalDate.now()),
         startDate = LocalDate.now(),
         lastDate = null,
         advanceDisplayDays = 0,
-        expireDisplayDays = 1,
+        expireDisplayDays = 999,
       )
   }
 }

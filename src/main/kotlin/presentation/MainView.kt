@@ -4,11 +4,14 @@ import TodoListView
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.unit.ExperimentalUnitApi
-import domain.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.StateFlow
 
 @Composable
 @FlowPreview
@@ -17,44 +20,28 @@ import kotlinx.coroutines.FlowPreview
 @ExperimentalAnimationApi
 @ExperimentalFoundationApi
 @ExperimentalCoroutinesApi
-fun MainView(todoListViewModel: TodoListViewModel) {
-  var screenState by remember { mutableStateOf<Screen>(Screen.List) }
+@ExperimentalComposeUiApi
+fun MainView(
+  stateFlow: StateFlow<MainViewState>,
+  listViewStateFlow: StateFlow<TodoListViewState>,
+  formViewStateFlow: StateFlow<TodoFormState>,
+  todoFormRequest: TodoFormRequest,
+  todoListRequest: TodoListViewRequest,
+) {
+  val state by stateFlow.collectAsState()
 
-  when (val screen = screenState) {
-    is Screen.Details ->
+  when (val s = state.screen) {
+    is Screen.Form -> {
+      todoFormRequest.setValue(s.todo)
       TodoForm(
-        state = remember { TodoFormState(value = screen.todo) },
-        onSave = { todo ->
-          if (todo.todoId == Todo.defaultTodoId) {
-            todoListViewModel.add(
-              frequency = todo.frequency.name,
-              category = todo.category,
-              description = todo.description,
-              note = todo.note,
-              startDate = todo.startDate,
-              advanceDisplayDays = todo.advanceDisplayDays,
-              expireDisplayDays = todo.expireDisplayDays,
-              monthday = todo.day,
-              weekday = todo.weekday,
-              week = todo.week,
-              month = todo.month,
-            )
-          } else {
-            todoListViewModel.update(todo = todo)
-          }
-        },
-        onBack = { screenState = Screen.List },
+        stateFlow = formViewStateFlow,
+        request = todoFormRequest,
       )
+    }
     Screen.List ->
       TodoListView(
-        todoListViewModel = todoListViewModel,
-        onAddButtonClick = {
-          screenState = Screen.Details(todo = Todo.default())
-        },
-        onEditButtonClick = {
-          todo ->
-          screenState = Screen.Details(todo = todo)
-        },
+        stateFlow = listViewStateFlow,
+        request = todoListRequest,
       )
   }
 }

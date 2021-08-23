@@ -9,96 +9,61 @@ import java.time.LocalDate
 @FlowPreview
 @ExperimentalCoroutinesApi
 class TodoListViewModel(
+  scope: CoroutineScope,
   private val db: Db,
   private val repository: TodoRepository,
+  private val events: SharedFlow<TodoListViewMessage>,
+  private val navigationRequest: NavigationRequest,
 ) {
-  private val coroutineScope = MainScope()
+  private val _state: MutableStateFlow<TodoListViewState> =
+    MutableStateFlow(TodoListViewState.initial())
 
-  val filter = MutableStateFlow(TodoFilter.initial())
-
-  val refDate = LocalDate.now()
-
-  private val _todos: MutableStateFlow<List<Todo>> = MutableStateFlow(emptyList())
-
-  val todos: StateFlow<Map<LocalDate, List<Todo>>> =
-    filter
-      .debounce(300)
-      .flatMapLatest { txt ->
-        _todos.map { todoList ->
-          todoList
-            .filter { todo -> todo.meetsCriteria(filter = filter.value, refDate = refDate) }
-            .sortedBy { todo -> todo.nextDate(refDate = refDate) }
-            .groupBy { todo -> todo.nextDate(refDate = refDate) }
-        }
-      }
-      .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), emptyMap())
+  val state = _state.asStateFlow()
 
   init {
-    refresh()
-  }
-
-  fun add(
-    frequency: TodoFrequencyName,
-    category: TodoCategory,
-    description: String,
-    note: String,
-    startDate: LocalDate,
-    advanceDisplayDays: Int,
-    expireDisplayDays: Int,
-    monthday: Int?,
-    weekday: Weekday?,
-    month: Int?,
-    week: Int?,
-  ) {
-    db.exec {
-      val freq =
-        when (frequency) {
-          TodoFrequencyName.Daily -> TodoFrequency.Daily
-          TodoFrequencyName.Monthly ->
-            TodoFrequency.Monthly(monthday = monthday ?: error("monthday is required."))
-          TodoFrequencyName.Weekly ->
-            TodoFrequency.Weekly(weekday = weekday ?: error("weekday is required."))
-          TodoFrequencyName.Yearly ->
-            TodoFrequency.Yearly(
-              month = month ?: error("month is required."),
-              day = monthday ?: error("monthday is required.")
-            )
-          TodoFrequencyName.Once -> TodoFrequency.Once(date = startDate)
-          TodoFrequencyName.XDays -> TodoFrequency.XDays(days = monthday ?: error("days is required."))
-          TodoFrequencyName.XMonthYWeekZWeekday ->
-            TodoFrequency.XMonthYWeekZWeekday(
-              month = month ?: error("month is required."),
-              week = week ?: error("week is required."),
-              weekday = weekday ?: error("weekday is required."),
-            )
+    scope.launch {
+      events.collect { msg ->
+        when (msg) {
+          is TodoListViewMessage.Delete -> delete(msg.todoId)
+          is TodoListViewMessage.FilterByCategory -> filterCategory(msg.category)
+          is TodoListViewMessage.FilterByDescription -> filterDescription(msg.description)
+          is TodoListViewMessage.FilterByIsDue -> filterIsDue(msg.isDue)
+          TodoListViewMessage.GoToAddForm -> navigationRequest.form(Todo.default())
+          is TodoListViewMessage.GoToEditForm -> navigationRequest.form(msg.todo)
+          is TodoListViewMessage.MarkComplete -> markComplete(msg.todoId)
+          TodoListViewMessage.Refresh -> refresh()
         }
-      repository.add(
-        description = description,
-        note = note,
-        category = category,
-        startDate = startDate,
-        frequency = freq,
-        advanceDisplayDays = advanceDisplayDays,
-        expireDisplayDays = expireDisplayDays,
-      )
+      }
     }
-    refresh()
   }
 
-  fun delete(todoId: Int) {
+  //  val todos: StateFlow<Map<LocalDate, List<Todo>>> =
+  //    filter
+  //      .debounce(300)
+  //      .flatMapLatest { txt ->
+  //        _todos.map { todoList ->
+  //          todoList
+  //            .filter { todo -> todo.meetsCriteria(filter = filter.value, refDate = refDate) }
+  //            .sortedBy { todo -> todo.nextDate(refDate = refDate) }
+  //            .groupBy { todo -> todo.nextDate(refDate = refDate) }
+  //        }
+  //      }
+  //      .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), emptyMap())
+
+  private fun delete(todoId: Int) {
     db.exec { repository.delete(todoId = todoId) }
     refresh()
   }
 
-  fun filterCategory(category: TodoCategory) {
-    filter.value = filter.value.copy(category = category)
+  private fun filterCategory(category: TodoCategory) {
+    fetch(state.value.todoFilter.copy(category = category))
   }
 
-  fun filterDescription(description: String) {
-    filter.value = filter.value.copy(descriptionLike = description.lowercase())
+  private fun filterDescription(description: String) {
+    fetch(state.value.todoFilter.copy(descriptionLike = description.lowercase()))
   }
 
-  fun markComplete(todoId: Int) {
+  private fun markComplete(todoId: Int) {
     db.exec {
       repository.markComplete(
         todoId = todoId,
@@ -108,16 +73,26 @@ class TodoListViewModel(
     refresh()
   }
 
-  fun refresh() {
-    _todos.value = db.exec { repository.all() }
+  private fun refresh() {
+    fetch(state.value.todoFilter)
   }
 
-  fun filterStartDateOnOrAfterToday(display: Boolean?) {
-    filter.value = filter.value.copy(nextDateInDisplayWindow = display)
+  private fun filterIsDue(display: Boolean?) {
+    fetch(state.value.todoFilter.copy(nextDateInDisplayWindow = display))
   }
 
-  fun update(todo: Todo) {
-    db.exec { repository.update(todo = todo) }
-    refresh()
+  private fun fetch(todoFilter: TodoFilter) {
+    val todos = db.exec { repository.all() }
+    val todosByDate =
+      todos
+        .filter { todo -> todo.meetsCriteria(filter = todoFilter, refDate = state.value.refDate) }
+        .sortedBy { todo -> todo.nextDate(refDate = state.value.refDate) }
+        .groupBy { todo -> todo.nextDate(refDate = state.value.refDate) }
+    _state.value =
+      TodoListViewState(
+        todos = todosByDate,
+        todoFilter = todoFilter,
+        refDate = state.value.refDate,
+      )
   }
 }

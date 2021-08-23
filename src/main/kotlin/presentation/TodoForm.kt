@@ -2,106 +2,54 @@ package presentation
 
 import androidx.compose.foundation.ContextMenuDataProvider
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.Button
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.Text
+import androidx.compose.material.TextField
+import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ContextMenuItem
 import androidx.compose.ui.unit.ExperimentalUnitApi
 import androidx.compose.ui.unit.dp
-import domain.*
-import presentation.shared.*
-import java.time.LocalDate
-
-data class TodoFormState(val value: Todo) {
-  var title: String by mutableStateOf(if (value.todoId == -1) "Add Todo" else "Edit Todo")
-
-  var description by mutableStateOf(value.description)
-
-  var startDate: LocalDate by mutableStateOf(value.startDate)
-
-  var note: String by mutableStateOf(value.note)
-
-  var advanceDisplayDays: Int by mutableStateOf(value.advanceDisplayDays)
-
-  var expireDisplayDays: Int by mutableStateOf(value.expireDisplayDays)
-
-  var category: TodoCategory by mutableStateOf(value.category)
-
-  var frequencyName: TodoFrequencyName by mutableStateOf(value.frequency.name)
-
-  var month: Int by mutableStateOf(value.month ?: 1)
-
-  var day: Int by mutableStateOf(value.day ?: 1)
-
-  var week: Int by mutableStateOf(value.week ?: 1)
-
-  var weekday: Weekday by mutableStateOf(value.weekday ?: Weekday.Monday)
-
-  val frequency: TodoFrequency
-    get() =
-      when (frequencyName) {
-        TodoFrequencyName.Daily -> TodoFrequency.Daily
-        TodoFrequencyName.Monthly -> TodoFrequency.Monthly(monthday = day)
-        TodoFrequencyName.Once -> TodoFrequency.Once(date = startDate)
-        TodoFrequencyName.Weekly -> TodoFrequency.Weekly(weekday = weekday)
-        TodoFrequencyName.XDays -> TodoFrequency.XDays(days = day)
-        TodoFrequencyName.XMonthYWeekZWeekday ->
-          TodoFrequency.XMonthYWeekZWeekday(
-            month = month,
-            week = week,
-            weekday = weekday,
-          )
-        TodoFrequencyName.Yearly -> TodoFrequency.Yearly(month = month, day = day)
-      }
-
-  val todo: Todo
-    get() =
-      Todo(
-        todoId = value.todoId,
-        description = description,
-        startDate = startDate,
-        lastDate = null,
-        note = note,
-        advanceDisplayDays = advanceDisplayDays,
-        expireDisplayDays = expireDisplayDays,
-        category = category,
-        frequency = frequency,
-      )
-
-  fun reset() {
-    description = value.description
-    startDate = value.startDate
-    note = value.note
-    advanceDisplayDays = value.advanceDisplayDays
-    expireDisplayDays = value.expireDisplayDays
-    category = value.category
-    frequencyName = value.frequency.name
-    month = value.month ?: 1
-    day = value.day ?: 1
-    week = value.week ?: 1
-    weekday = value.weekday ?: Weekday.Monday
-  }
-}
+import domain.TodoFrequency
+import domain.Weekday
+import kotlinx.coroutines.flow.StateFlow
+import presentation.shared.BoundedIntField
+import presentation.shared.DateTextField
+import presentation.shared.EnumDropdown
 
 @ExperimentalComposeUiApi
 @ExperimentalFoundationApi
 @ExperimentalUnitApi
 @Composable
 fun TodoForm(
-  state: TodoFormState = remember { TodoFormState(value = Todo.default()) },
-  onSave: (Todo) -> Unit,
-  onBack: () -> Unit,
+  stateFlow: StateFlow<TodoFormState>,
+  request: TodoFormRequest,
 ) {
+
+  val state: TodoFormState by stateFlow.collectAsState()
+
   Column(modifier = Modifier.padding(10.dp)) {
     TopAppBar(
       title = { Text(state.title) },
       navigationIcon = {
-        IconButton(onClick = onBack) {
-          Icon(imageVector = Icons.Default.ArrowBack, contentDescription = null)
+        IconButton(onClick = request::back) {
+          Icon(
+            imageVector = Icons.Default.ArrowBack,
+            contentDescription = null,
+          )
         }
       }
     )
@@ -111,14 +59,17 @@ fun TodoForm(
     ContextMenuDataProvider(
       items = {
         listOf(
-          ContextMenuItem("Clear") { state.description = "" },
-          ContextMenuItem("Reset") { state.description = state.value.description },
+          ContextMenuItem("Clear") {
+            request.setValue(state.todo.copy(description = ""))
+          },
         )
       }
     ) {
       TextField(
-        value = state.description,
-        onValueChange = { state.description = it },
+        value = state.todo.description,
+        onValueChange = {
+          request.setValue(state.todo.copy(description = it))
+        },
         label = { Text("Description") }
       )
     }
@@ -128,14 +79,17 @@ fun TodoForm(
     ContextMenuDataProvider(
       items = {
         listOf(
-          ContextMenuItem("Clear") { state.note = "" },
-          ContextMenuItem("Reset") { state.note = state.value.note },
+          ContextMenuItem("Clear") {
+            request.setValue(state.todo.copy(note = ""))
+          },
         )
       }
     ) {
       TextField(
-        value = state.note,
-        onValueChange = { state.note = it },
+        value = state.todo.note,
+        onValueChange = {
+          request.setValue(state.todo.copy(note = it))
+        },
         label = { Text("Note") },
       )
     }
@@ -144,81 +98,99 @@ fun TodoForm(
 
     EnumDropdown(
       label = "Category",
-      value = state.category,
-      onValueChange = { state.category = it },
+      value = state.todo.category,
+      onValueChange = {
+        request.setValue(state.todo.copy(category = it))
+      },
     )
 
     Spacer(Modifier.height(10.dp))
 
     EnumDropdown(
       label = "Frequency",
-      value = state.frequency.name,
-      onValueChange = { state.frequencyName = it },
+      value = state.todo.frequency.name,
+      onValueChange = request::setFrequency,
     )
 
     Spacer(Modifier.height(10.dp))
 
-    when (state.frequencyName) {
-      TodoFrequencyName.Daily -> {}
-      TodoFrequencyName.Monthly ->
+    when (val freq = state.todo.frequency) {
+      TodoFrequency.Daily -> {}
+      is TodoFrequency.Monthly ->
         BoundedIntField(
           label = "Month Day",
-          value = state.day,
-          onValueChange = { state.day = it },
+          value = state.todo.day ?: 1,
+          onValueChange = {
+            request.setValue(state.todo.copy(frequency = freq.copy(monthday = it)))
+          },
           minValue = 1,
           maxValue = 28,
         )
-      TodoFrequencyName.Weekly ->
+      is TodoFrequency.Weekly ->
         EnumDropdown(
           label = "Weekday",
-          value = state.weekday,
-          onValueChange = { state.weekday = it }
+          value = state.todo.weekday ?: Weekday.Monday,
+          onValueChange = {
+            request.setValue(state.todo.copy(frequency = freq.copy(weekday = it)))
+          }
         )
-      TodoFrequencyName.Yearly -> {
+      is TodoFrequency.Yearly -> {
         BoundedIntField(
           label = "Month",
-          value = state.month,
-          onValueChange = { state.month = it },
+          value = state.todo.month ?: 1,
+          onValueChange = {
+            request.setValue(state.todo.copy(frequency = freq.copy(month = it)))
+          },
           minValue = 1,
           maxValue = 12,
         )
         BoundedIntField(
           label = "Day",
-          value = state.day,
-          onValueChange = { state.day = it },
+          value = state.todo.day ?: 1,
+          onValueChange = {
+            request.setValue(state.todo.copy(frequency = freq.copy(day = it)))
+          },
           minValue = 1,
           maxValue = 28,
         )
       }
-      TodoFrequencyName.Once -> {}
-      TodoFrequencyName.XDays -> {
+      is TodoFrequency.Once -> {}
+      is TodoFrequency.XDays -> {
         BoundedIntField(
           label = "Days",
-          value = state.day,
-          onValueChange = { state.day = it },
+          value = state.todo.day ?: 1,
+          onValueChange = {
+            request.setValue(state.todo.copy(frequency = freq.copy(days = it)))
+          },
           minValue = 1,
           maxValue = 9999,
         )
       }
-      TodoFrequencyName.XMonthYWeekZWeekday -> {
+      is TodoFrequency.XMonthYWeekZWeekday -> {
         BoundedIntField(
           label = "Month",
-          value = state.month,
-          onValueChange = { state.month = it },
+          value = state.todo.month ?: 1,
+          onValueChange = {
+            request.setValue(state.todo.copy(frequency = freq.copy(month = it)))
+          },
           minValue = 1,
           maxValue = 12,
         )
         BoundedIntField(
           label = "Week",
-          value = state.week,
-          onValueChange = { state.week = it },
+          value = state.todo.week ?: 1,
+          onValueChange = {
+            request.setValue(state.todo.copy(frequency = freq.copy(week = it)))
+          },
           minValue = 1,
           maxValue = 5,
         )
         EnumDropdown(
           label = "Weekday",
-          value = state.weekday,
-          onValueChange = { state.weekday = it },
+          value = state.todo.weekday ?: Weekday.Monday,
+          onValueChange = {
+            request.setValue(state.todo.copy(frequency = freq.copy(weekday = it)))
+          },
         )
       }
     }
@@ -227,41 +199,43 @@ fun TodoForm(
 
     DateTextField(
       label = "Start Date",
-      value = state.startDate,
-      onValueChange = { state.startDate = it },
+      value = state.todo.startDate,
+      onValueChange = {
+        request.setValue(state.todo.copy(startDate = it))
+      },
     )
 
     Spacer(Modifier.height(10.dp))
 
     BoundedIntField(
       label = "Advance Display Days",
-      value = state.advanceDisplayDays,
+      value = state.todo.advanceDisplayDays,
       minValue = 0,
       maxValue = 999,
-      onValueChange = { state.advanceDisplayDays = it }
+      onValueChange = {
+        request.setValue(state.todo.copy(advanceDisplayDays = it))
+      }
     )
 
     Spacer(Modifier.height(10.dp))
 
     BoundedIntField(
       label = "Expire Display Days",
-      value = state.expireDisplayDays,
+      value = state.todo.expireDisplayDays,
       minValue = 0,
       maxValue = 999,
-      onValueChange = { state.expireDisplayDays = it }
+      onValueChange = {
+        request.setValue(state.todo.copy(expireDisplayDays = it))
+      }
     )
 
     Spacer(Modifier.height(10.dp))
 
     Row {
-      Button(onClick = { state.reset() }) { Text("Reset") }
-
-      Spacer(Modifier.width(3.dp))
-
       Button(
         onClick = {
-          onSave(state.todo)
-          onBack()
+          request.save(state.todo)
+          request.back()
         }
       ) { Text("Save") }
     }
