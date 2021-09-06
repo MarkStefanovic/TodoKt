@@ -21,6 +21,7 @@ fun BoundedIntField(
   minValue: Int?,
   maxValue: Int?,
   onValueChange: (Int) -> Unit,
+  modifier: Modifier = Modifier,
 ) {
   var state by remember { mutableStateOf(TextFieldValue(text = value.toString())) }
 
@@ -68,10 +69,7 @@ fun BoundedIntField(
         }
       },
       label = { Text(label) },
-      modifier =
-      Modifier.width(130.dp)
-        .border(width = 1.dp, color = borderColor),
-//          .wrapContentSize(Alignment.Center),
+      modifier = modifier.width(130.dp).border(width = 1.dp, color = borderColor),
       maxLines = 1,
     )
   }

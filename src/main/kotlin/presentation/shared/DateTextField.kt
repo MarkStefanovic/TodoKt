@@ -17,7 +17,12 @@ import java.time.LocalDate
 
 @ExperimentalUnitApi
 @Composable
-fun DateTextField(label: String, value: LocalDate, onValueChange: (LocalDate) -> Unit) {
+fun DateTextField(
+  label: String,
+  value: LocalDate,
+  onValueChange: (LocalDate) -> Unit,
+  modifier: Modifier = Modifier,
+) {
   var textFieldValueState by remember { mutableStateOf(TextFieldValue(text = value.toString())) }
 
   var isValidDate: Boolean by remember { mutableStateOf(true) }
@@ -59,8 +64,8 @@ fun DateTextField(label: String, value: LocalDate, onValueChange: (LocalDate) ->
         }
       },
       label = { Text(label) },
-      modifier =
-      Modifier.width(130.dp)
+      modifier = modifier
+        .width(130.dp)
         .border(width = 1.dp, color = borderColor)
         .wrapContentSize(Alignment.Center),
       maxLines = 1,

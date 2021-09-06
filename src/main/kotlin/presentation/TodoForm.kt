@@ -25,12 +25,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.focusTarget
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.platform.ContextMenuItem
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.ExperimentalUnitApi
@@ -55,14 +50,7 @@ fun TodoForm(
 
   val focusRequester = remember { FocusRequester() }
 
-  val focusManager = LocalFocusManager.current
-
-  Column(
-    modifier =
-    Modifier.padding(10.dp).onKeyEvent { e ->
-      e.key != Key.Tab
-    },
-  ) {
+  Column(modifier = Modifier.padding(10.dp)) {
     TopAppBar(
       title = { Text(state.title) },
       navigationIcon = {
@@ -103,14 +91,10 @@ fun TodoForm(
       }
     ) {
       TextField(
-        //        value = state.todo.note,
-        //        onValueChange = {
-        //          request.setValue(state.todo.copy(note = it))
-        //        },
         value = TextFieldValue(state.todo.note, TextRange(state.todo.note.length)),
         onValueChange = { request.setValue(state.todo.copy(note = it.text)) },
         label = { Text("Note") },
-        modifier = Modifier.focusTarget().fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
       )
     }
 
@@ -234,7 +218,9 @@ fun TodoForm(
     Row { Button(onClick = { request.save(state.todo) }) { Text("Save") } }
   }
 
-  LaunchedEffect(Unit) { focusRequester.requestFocus() }
+  LaunchedEffect(Unit) {
+    focusRequester.requestFocus()
+  }
 
   //  SideEffect {
   //    focusRequester.requestFocus()
