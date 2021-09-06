@@ -5,6 +5,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Button
@@ -16,11 +17,22 @@ import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.focusTarget
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.platform.ContextMenuItem
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.ExperimentalUnitApi
 import androidx.compose.ui.unit.dp
 import domain.TodoFrequency
@@ -41,7 +53,16 @@ fun TodoForm(
 
   val state: TodoFormState by stateFlow.collectAsState()
 
-  Column(modifier = Modifier.padding(10.dp)) {
+  val focusRequester = remember { FocusRequester() }
+
+  val focusManager = LocalFocusManager.current
+
+  Column(
+    modifier =
+    Modifier.padding(10.dp).onKeyEvent { e ->
+      e.key != Key.Tab
+    },
+  ) {
     TopAppBar(
       title = { Text(state.title) },
       navigationIcon = {
@@ -59,18 +80,16 @@ fun TodoForm(
     ContextMenuDataProvider(
       items = {
         listOf(
-          ContextMenuItem("Clear") {
-            request.setValue(state.todo.copy(description = ""))
-          },
+          ContextMenuItem("Clear") { request.setValue(state.todo.copy(description = "")) },
         )
       }
     ) {
       TextField(
-        value = state.todo.description,
-        onValueChange = {
-          request.setValue(state.todo.copy(description = it))
-        },
-        label = { Text("Description") }
+        value = TextFieldValue(state.todo.description, TextRange(state.todo.description.length)),
+        onValueChange = { request.setValue(state.todo.copy(description = it.text)) },
+        label = { Text("Description") },
+        maxLines = 1,
+        modifier = Modifier.focusRequester(focusRequester).fillMaxWidth(),
       )
     }
 
@@ -79,18 +98,19 @@ fun TodoForm(
     ContextMenuDataProvider(
       items = {
         listOf(
-          ContextMenuItem("Clear") {
-            request.setValue(state.todo.copy(note = ""))
-          },
+          ContextMenuItem("Clear") { request.setValue(state.todo.copy(note = "")) },
         )
       }
     ) {
       TextField(
-        value = state.todo.note,
-        onValueChange = {
-          request.setValue(state.todo.copy(note = it))
-        },
+        //        value = state.todo.note,
+        //        onValueChange = {
+        //          request.setValue(state.todo.copy(note = it))
+        //        },
+        value = TextFieldValue(state.todo.note, TextRange(state.todo.note.length)),
+        onValueChange = { request.setValue(state.todo.copy(note = it.text)) },
         label = { Text("Note") },
+        modifier = Modifier.focusTarget().fillMaxWidth(),
       )
     }
 
@@ -99,9 +119,7 @@ fun TodoForm(
     EnumDropdown(
       label = "Category",
       value = state.todo.category,
-      onValueChange = {
-        request.setValue(state.todo.copy(category = it))
-      },
+      onValueChange = { request.setValue(state.todo.copy(category = it)) },
     )
 
     Spacer(Modifier.height(10.dp))
@@ -130,26 +148,20 @@ fun TodoForm(
         EnumDropdown(
           label = "Weekday",
           value = state.todo.weekday ?: Weekday.Monday,
-          onValueChange = {
-            request.setValue(state.todo.copy(frequency = freq.copy(weekday = it)))
-          }
+          onValueChange = { request.setValue(state.todo.copy(frequency = freq.copy(weekday = it))) }
         )
       is TodoFrequency.Yearly -> {
         BoundedIntField(
           label = "Month",
           value = state.todo.month ?: 1,
-          onValueChange = {
-            request.setValue(state.todo.copy(frequency = freq.copy(month = it)))
-          },
+          onValueChange = { request.setValue(state.todo.copy(frequency = freq.copy(month = it))) },
           minValue = 1,
           maxValue = 12,
         )
         BoundedIntField(
           label = "Day",
           value = state.todo.day ?: 1,
-          onValueChange = {
-            request.setValue(state.todo.copy(frequency = freq.copy(day = it)))
-          },
+          onValueChange = { request.setValue(state.todo.copy(frequency = freq.copy(day = it))) },
           minValue = 1,
           maxValue = 28,
         )
@@ -159,9 +171,7 @@ fun TodoForm(
         BoundedIntField(
           label = "Days",
           value = state.todo.day ?: 1,
-          onValueChange = {
-            request.setValue(state.todo.copy(frequency = freq.copy(days = it)))
-          },
+          onValueChange = { request.setValue(state.todo.copy(frequency = freq.copy(days = it))) },
           minValue = 1,
           maxValue = 9999,
         )
@@ -170,18 +180,14 @@ fun TodoForm(
         BoundedIntField(
           label = "Month",
           value = state.todo.month ?: 1,
-          onValueChange = {
-            request.setValue(state.todo.copy(frequency = freq.copy(month = it)))
-          },
+          onValueChange = { request.setValue(state.todo.copy(frequency = freq.copy(month = it))) },
           minValue = 1,
           maxValue = 12,
         )
         BoundedIntField(
           label = "Week",
           value = state.todo.week ?: 1,
-          onValueChange = {
-            request.setValue(state.todo.copy(frequency = freq.copy(week = it)))
-          },
+          onValueChange = { request.setValue(state.todo.copy(frequency = freq.copy(week = it))) },
           minValue = 1,
           maxValue = 5,
         )
@@ -200,9 +206,7 @@ fun TodoForm(
     DateTextField(
       label = "Start Date",
       value = state.todo.startDate,
-      onValueChange = {
-        request.setValue(state.todo.copy(startDate = it))
-      },
+      onValueChange = { request.setValue(state.todo.copy(startDate = it)) },
     )
 
     Spacer(Modifier.height(10.dp))
@@ -212,9 +216,7 @@ fun TodoForm(
       value = state.todo.advanceDisplayDays,
       minValue = 0,
       maxValue = 999,
-      onValueChange = {
-        request.setValue(state.todo.copy(advanceDisplayDays = it))
-      }
+      onValueChange = { request.setValue(state.todo.copy(advanceDisplayDays = it)) }
     )
 
     Spacer(Modifier.height(10.dp))
@@ -224,20 +226,17 @@ fun TodoForm(
       value = state.todo.expireDisplayDays,
       minValue = 0,
       maxValue = 999,
-      onValueChange = {
-        request.setValue(state.todo.copy(expireDisplayDays = it))
-      }
+      onValueChange = { request.setValue(state.todo.copy(expireDisplayDays = it)) }
     )
 
     Spacer(Modifier.height(10.dp))
 
-    Row {
-      Button(
-        onClick = {
-          request.save(state.todo)
-          request.back()
-        }
-      ) { Text("Save") }
-    }
+    Row { Button(onClick = { request.save(state.todo) }) { Text("Save") } }
   }
+
+  LaunchedEffect(Unit) { focusRequester.requestFocus() }
+
+  //  SideEffect {
+  //    focusRequester.requestFocus()
+  //  }
 }

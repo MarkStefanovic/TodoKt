@@ -5,6 +5,9 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.*
 import androidx.compose.ui.*
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.isCtrlPressed
+import androidx.compose.ui.input.key.key
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.window.*
 import domain.TodoRepository
@@ -21,6 +24,7 @@ import presentation.MainView
 import presentation.MainViewModel
 import presentation.NavigationMessage
 import presentation.NavigationRequest
+import presentation.Screen
 import presentation.TodoFormMessage
 import presentation.TodoFormRequest
 import presentation.TodoFormViewModel
@@ -132,20 +136,43 @@ fun main() = application {
   val mainViewModel =
     MainViewModel(
       scope = scope,
-      todoListViewModel = todoListViewModel,
-      todoFormViewModel = todoFormViewModel,
       events = navigationEvents,
     )
-
-//  scope.launch {
-//    todoListEvents.emit(TodoListViewMessage.Refresh)
-//  }
 
   Window(
     onCloseRequest = ::exitApplication,
     state = state,
     title = "Todos",
-    resizable = false,
+    resizable = true,
+    onKeyEvent = { e ->
+      if (e.isCtrlPressed && e.key == Key.A) {
+        when (mainViewModel.state.value.screen) {
+          is Screen.Form -> false
+          Screen.List -> {
+            todoListRequest.goToAddForm()
+            true
+          }
+        }
+      } else if (e.isCtrlPressed && e.key == Key.B) {
+        when (mainViewModel.state.value.screen) {
+          is Screen.Form -> {
+            todoFormRequest.back()
+            true
+          }
+          Screen.List -> false
+        }
+      } else if (e.isCtrlPressed && e.key == Key.S) {
+        when (mainViewModel.state.value.screen) {
+          is Screen.Form -> {
+            todoFormRequest.save(todoFormViewModel.state.value.todo)
+            true
+          }
+          Screen.List -> false
+        }
+      } else {
+        false
+      }
+    }
   ) {
     DesktopMaterialTheme(colors = darkColors()) {
       Surface(

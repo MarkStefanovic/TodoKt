@@ -38,7 +38,10 @@ class TodoFormViewModel(
           TodoFormMessage.Back -> navigationRequest.back()
           is TodoFormMessage.ChangeFrequency -> setFrequency(message.frequencyName)
           is TodoFormMessage.ChangeValue -> setTodo(message.todo)
-          is TodoFormMessage.Save -> saveTodo(message.todo)
+          is TodoFormMessage.Save -> {
+            saveTodo(message.todo)
+            navigationRequest.back()
+          }
         }
       }
     }

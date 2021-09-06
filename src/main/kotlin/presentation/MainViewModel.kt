@@ -16,8 +16,6 @@ import kotlinx.coroutines.launch
 @FlowPreview
 class MainViewModel(
   scope: CoroutineScope,
-  private val todoFormViewModel: TodoFormViewModel,
-  private val todoListViewModel: TodoListViewModel,
   private val events: SharedFlow<NavigationMessage>,
 ) {
   private val _state = MutableStateFlow(MainViewState(Screen.List))
