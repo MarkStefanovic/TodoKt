@@ -2,7 +2,7 @@ package adapter
 
 import domain.*
 import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.`java-time`.date
+import org.jetbrains.exposed.sql.javatime.date
 import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.sql.Connection

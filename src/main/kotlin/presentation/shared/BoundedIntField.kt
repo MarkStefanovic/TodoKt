@@ -1,18 +1,24 @@
 package presentation.shared
 
-import androidx.compose.foundation.BoxWithTooltip
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.TooltipArea
+import androidx.compose.foundation.TooltipPlacement
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
-import androidx.compose.runtime.*
+import androidx.compose.material.Surface
+import androidx.compose.material.Text
+import androidx.compose.material.TextField
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.ExperimentalUnitApi
 import androidx.compose.ui.unit.dp
 
+@ExperimentalFoundationApi
 @ExperimentalUnitApi
 @Composable
 fun BoundedIntField(
@@ -23,49 +29,39 @@ fun BoundedIntField(
   onValueChange: (Int) -> Unit,
   modifier: Modifier = Modifier,
 ) {
-  var state by remember { mutableStateOf(TextFieldValue(text = value.toString())) }
+  val errorMessage = if (minValue != null && value < minValue) {
+    "Must be >= $minValue"
+  } else if (maxValue != null && value > maxValue) {
+    "Must be <= $maxValue"
+  } else {
+    null
+  }
 
-  val textValue = state.copy(text = value.toString())
+  val borderColor = if (errorMessage == null) Color.Unspecified else Color.Red
 
-  var errorMessage: String? by remember { mutableStateOf(null) }
-
-  val isValid = errorMessage == null
-
-  val borderColor = if (isValid) Color.Unspecified else Color.Red
-
-  BoxWithTooltip(
-    tooltip = {
-      errorMessage?.let { msg ->
-        Surface(
-          modifier = Modifier.shadow(4.dp),
-          color = Color(255, 255, 210),
-          shape = RoundedCornerShape(4.dp)
-        ) { Text(text = msg, modifier = Modifier.padding(10.dp)) }
+  TooltipArea(tooltip = {
+    if (errorMessage != null) {
+      Surface(modifier = Modifier.shadow(4.dp), color = Color(255, 255, 210), shape = RoundedCornerShape(4.dp)) {
+        Text(
+          text = errorMessage,
+          modifier = Modifier.padding(10.dp),
+          color = Color.Black,
+        )
       }
-    },
-  ) {
+    }
+  }, tooltipPlacement = TooltipPlacement.CursorPoint(offset = DpOffset(0.dp, 16.dp))) {
     TextField(
-      value = textValue,
+      value = value.toString(),
       onValueChange = {
-        state = it
-
-        try {
-          val intValue = it.text.toInt()
-
-          errorMessage =
-            if (minValue != null && intValue < minValue) {
-              "Must be >= $minValue"
-            } else if (maxValue != null && intValue > maxValue) {
-              "Must be <= $maxValue"
-            } else {
-              null
-            }
-
-          if (errorMessage == null) {
+        if (it == "") {
+          onValueChange(0)
+        } else {
+          try {
+            val intValue = it.toInt()
             onValueChange(intValue)
+          } catch (e: Throwable) {
+            println("$it is not a number")
           }
-        } catch (e: Throwable) {
-          errorMessage = "Not a number"
         }
       },
       label = { Text(label) },

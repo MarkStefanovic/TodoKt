@@ -1,6 +1,9 @@
-import adapter.*
+
+import adapter.Db
+import adapter.ExposedTodoRepository
+import adapter.TodoTable
+import adapter.createTodoTable
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.desktop.DesktopMaterialTheme
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.*
@@ -174,7 +177,7 @@ fun main() = application {
       }
     }
   ) {
-    DesktopMaterialTheme(colors = darkColors()) {
+    MaterialTheme(colors = darkColors()) {
       Surface(
         color = MaterialTheme.colors.surface,
         contentColor = contentColorFor(MaterialTheme.colors.surface),

@@ -1,6 +1,8 @@
 package presentation.shared
 
-import androidx.compose.foundation.BoxWithTooltip
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.TooltipArea
+import androidx.compose.foundation.TooltipPlacement
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -11,10 +13,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.ExperimentalUnitApi
 import androidx.compose.ui.unit.dp
 import java.time.LocalDate
 
+@ExperimentalFoundationApi
 @ExperimentalUnitApi
 @Composable
 fun DateTextField(
@@ -23,51 +27,49 @@ fun DateTextField(
   onValueChange: (LocalDate) -> Unit,
   modifier: Modifier = Modifier,
 ) {
-  var textFieldValueState by remember { mutableStateOf(TextFieldValue(text = value.toString())) }
+  var textValue by remember { mutableStateOf(TextFieldValue(value.toString())) }
 
-  var isValidDate: Boolean by remember { mutableStateOf(true) }
+  val errorMessage: String? =
+    try {
+      LocalDate.parse(textValue.text)
+      null
+    } catch (e: Throwable) {
+      "Date must be formatted as YYYY-MM-DD."
+    }
 
-  var errorMessage: String? by remember { mutableStateOf(null) }
+  val borderColor = if (errorMessage == null) {
+    Color.Unspecified
+  } else {
+    Color.Red
+  }
 
-  val borderColor = if (isValidDate) Color.Unspecified else Color.Red
-
-  BoxWithTooltip(
-    tooltip = {
-      errorMessage?.let { msg ->
-        Surface(
-          modifier = Modifier.shadow(4.dp),
-          color = Color(255, 255, 210),
-          shape = RoundedCornerShape(4.dp)
-        ) {
-          Text(
-            text = msg,
-            modifier = Modifier.padding(10.dp)
-          )
-        }
+  TooltipArea(tooltip = {
+    if (errorMessage != null) {
+      Surface(modifier = Modifier.shadow(4.dp), color = Color(255, 255, 210), shape = RoundedCornerShape(4.dp)) {
+        Text(
+          text = errorMessage,
+          modifier = Modifier.padding(10.dp),
+          color = Color.Black,
+        )
       }
     }
-  ) {
+  }, tooltipPlacement = TooltipPlacement.CursorPoint(offset = DpOffset(0.dp, 16.dp))) {
     TextField(
-      value = textFieldValueState,
+      value = textValue,
       onValueChange = {
-        if (it.text.length <= 10) {
-          textFieldValueState = it
+        if (textValue.text.length <= 10) {
+          textValue = it
 
           try {
-            val dateValue = LocalDate.parse(it.text)
-            isValidDate = true
-            onValueChange(dateValue)
-          } catch (_: Throwable) {
-            errorMessage = "Not a valid date. Please enter date as YYYY-MM-DD."
-            isValidDate = false
+            val dt = LocalDate.parse(textValue.text)
+            onValueChange(dt)
+          } catch (e: Throwable) {
+            println("$textValue is not a valid date.")
           }
         }
       },
       label = { Text(label) },
-      modifier = modifier
-        .width(130.dp)
-        .border(width = 1.dp, color = borderColor)
-        .wrapContentSize(Alignment.Center),
+      modifier = modifier.width(130.dp).border(width = 1.dp, color = borderColor).wrapContentSize(Alignment.Center),
       maxLines = 1,
     )
   }
