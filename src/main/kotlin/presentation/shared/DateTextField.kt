@@ -43,17 +43,24 @@ fun DateTextField(
     Color.Red
   }
 
-  TooltipArea(tooltip = {
-    if (errorMessage != null) {
-      Surface(modifier = Modifier.shadow(4.dp), color = Color(255, 255, 210), shape = RoundedCornerShape(4.dp)) {
-        Text(
-          text = errorMessage,
-          modifier = Modifier.padding(10.dp),
-          color = Color.Black,
-        )
+  TooltipArea(
+    tooltip = {
+      if (errorMessage != null) {
+        Surface(
+          modifier = Modifier.shadow(4.dp),
+          color = Color(255, 255, 210),
+          shape = RoundedCornerShape(4.dp),
+        ) {
+          Text(
+            text = errorMessage,
+            modifier = Modifier.padding(10.dp),
+            color = Color.Black,
+          )
+        }
       }
-    }
-  }, tooltipPlacement = TooltipPlacement.CursorPoint(offset = DpOffset(0.dp, 16.dp))) {
+    },
+    tooltipPlacement = TooltipPlacement.CursorPoint(offset = DpOffset(0.dp, 16.dp))
+  ) {
     TextField(
       value = textValue,
       onValueChange = {
