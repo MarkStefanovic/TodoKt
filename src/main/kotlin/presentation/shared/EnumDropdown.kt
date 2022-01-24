@@ -41,7 +41,7 @@ inline fun <reified T : Enum<T>> EnumDropdown(
       trailingIcon = {
         Icon(
           Icons.Filled.ArrowDropDown,
-          "contentDescription",
+          "${T::class.java.simpleName} Dropdown",
           Modifier.clickable { expanded = !expanded },
         )
       },
