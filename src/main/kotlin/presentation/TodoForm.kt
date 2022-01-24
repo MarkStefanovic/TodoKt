@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.Button
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
@@ -121,12 +122,15 @@ fun TodoForm(
       is TodoFrequency.Monthly ->
         BoundedIntField(
           label = "Month Day",
-          value = state.todo.day ?: 1,
-          onValueChange = {
-            request.setValue(state.todo.copy(frequency = freq.copy(monthday = it)))
+          value = (state.todo.day ?: 1).toString(),
+          onValueChange = { _, new ->
+            if (new.isAnInt()) {
+              request.setValue(state.todo.copy(frequency = freq.copy(monthday = new.toInt())))
+            }
           },
           minValue = 1,
           maxValue = 28,
+          modifier = Modifier.width(150.dp),
         )
       is TodoFrequency.Weekly ->
         EnumDropdown(
@@ -137,43 +141,68 @@ fun TodoForm(
       is TodoFrequency.Yearly -> {
         BoundedIntField(
           label = "Month",
-          value = state.todo.month ?: 1,
-          onValueChange = { request.setValue(state.todo.copy(frequency = freq.copy(month = it))) },
+          value = (state.todo.month ?: 1).toString(),
+          onValueChange = { _, new ->
+            if (new.isAnInt()) {
+              request.setValue(state.todo.copy(frequency = freq.copy(month = new.toInt())))
+            }
+          },
           minValue = 1,
           maxValue = 12,
+          modifier = Modifier.width(150.dp),
         )
         BoundedIntField(
           label = "Day",
-          value = state.todo.day ?: 1,
-          onValueChange = { request.setValue(state.todo.copy(frequency = freq.copy(day = it))) },
+          value = (state.todo.day ?: 1).toString(),
+          onValueChange = { _, new ->
+            if (new.isAnInt()) {
+              request.setValue(state.todo.copy(frequency = freq.copy(day = new.toInt())))
+            }
+          },
           minValue = 1,
           maxValue = 28,
+          modifier = Modifier.width(150.dp),
         )
       }
       is TodoFrequency.Once -> {}
       is TodoFrequency.XDays -> {
         BoundedIntField(
           label = "Days",
-          value = state.todo.day ?: 1,
-          onValueChange = { request.setValue(state.todo.copy(frequency = freq.copy(days = it))) },
+          value = (state.todo.day ?: 1).toString(),
+          onValueChange = { _, new ->
+            if (new.isAnInt()) {
+              request.setValue(state.todo.copy(frequency = freq.copy(days = new.toInt())))
+            }
+          },
           minValue = 1,
           maxValue = 9999,
+          modifier = Modifier.width(150.dp),
         )
       }
       is TodoFrequency.XMonthYWeekZWeekday -> {
         BoundedIntField(
           label = "Month",
-          value = state.todo.month ?: 1,
-          onValueChange = { request.setValue(state.todo.copy(frequency = freq.copy(month = it))) },
+          value = (state.todo.month ?: 1).toString(),
+          onValueChange = { _, new ->
+            if (new.isAnInt()) {
+              request.setValue(state.todo.copy(frequency = freq.copy(month = new.toInt())))
+            }
+          },
           minValue = 1,
           maxValue = 12,
+          modifier = Modifier.width(150.dp),
         )
         BoundedIntField(
           label = "Week",
-          value = state.todo.week ?: 1,
-          onValueChange = { request.setValue(state.todo.copy(frequency = freq.copy(week = it))) },
+          value = (state.todo.week ?: 1).toString(),
+          onValueChange = { _, new ->
+            if (new.isAnInt()) {
+              request.setValue(state.todo.copy(frequency = freq.copy(week = new.toInt())))
+            }
+          },
           minValue = 1,
           maxValue = 5,
+          modifier = Modifier.width(150.dp),
         )
         EnumDropdown(
           label = "Weekday",
@@ -197,20 +226,30 @@ fun TodoForm(
 
     BoundedIntField(
       label = "Advance Display Days",
-      value = state.todo.advanceDisplayDays,
+      value = state.todo.advanceDisplayDays.toString(),
       minValue = 0,
       maxValue = 999,
-      onValueChange = { request.setValue(state.todo.copy(advanceDisplayDays = it)) }
+      onValueChange = { _, new ->
+        if (new.isAnInt()) {
+          request.setValue(state.todo.copy(advanceDisplayDays = new.toInt()))
+        }
+      },
+      modifier = Modifier.width(150.dp),
     )
 
     Spacer(Modifier.height(10.dp))
 
     BoundedIntField(
       label = "Expire Display Days",
-      value = state.todo.expireDisplayDays,
+      value = state.todo.expireDisplayDays.toString(),
       minValue = 0,
       maxValue = 999,
-      onValueChange = { request.setValue(state.todo.copy(expireDisplayDays = it)) }
+      onValueChange = { _, new ->
+        if (new.isAnInt()) {
+          request.setValue(state.todo.copy(expireDisplayDays = new.toInt()))
+        }
+      },
+      modifier = Modifier.width(150.dp),
     )
 
     Spacer(Modifier.height(10.dp))
@@ -226,3 +265,12 @@ fun TodoForm(
   //    focusRequester.requestFocus()
   //  }
 }
+
+fun String.isAnInt(): Boolean =
+  if (this.isEmpty()) {
+    false
+  } else if (this.length == 1) {
+    this.first().isDigit()
+  } else {
+    all { it.isDigit() }
+  }
