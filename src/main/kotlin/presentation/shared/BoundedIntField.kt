@@ -5,14 +5,18 @@ import androidx.compose.foundation.TooltipArea
 import androidx.compose.foundation.TooltipPlacement
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
@@ -31,22 +35,19 @@ fun BoundedIntField(
   modifier: Modifier = Modifier,
   onValueChange: (String, String) -> Unit = { old, new -> },
 ) {
+  var textValue by remember { mutableStateOf(value) }
 
-  val state = rememberSaveable { mutableStateOf(value) }
-
-  val errorMessage = if (state.value.isEmpty()) {
+  val errorMessage = if (textValue.isEmpty()) {
     "Required"
-  } else if (state.value.any { !it.isDigit() }) {
+  } else if (textValue.any { !it.isDigit() }) {
     "Not a number"
-  } else if (minValue != null && state.value.toInt() < minValue) {
+  } else if (minValue != null && textValue.toInt() < minValue) {
     "Must be >= $minValue"
-  } else if (maxValue != null && state.value.toInt() > maxValue) {
+  } else if (maxValue != null && textValue.toInt() > maxValue) {
     "Must be <= $maxValue"
   } else {
     null
   }
-
-//  val borderColor = if (errorMessage == null) Color.Unspecified else Color.Red
 
   TooltipArea(
     tooltip = {
@@ -69,17 +70,17 @@ fun BoundedIntField(
     OutlinedTextField(
       label = { Text(label) },
       singleLine = true,
-      value = state.value,
+      value = textValue,
       onValueChange = {
-        onValueChange(state.value, it)
-        state.value = it
+        onValueChange(textValue, it)
+        textValue = it
       },
       keyboardOptions = KeyboardOptions(
         keyboardType = KeyboardType.Number,
         imeAction = ImeAction.Next,
       ),
       isError = errorMessage != null,
-      modifier = modifier.width(130.dp), // .border(width = 1.dp, color = borderColor),
+      modifier = modifier.width(130.dp).wrapContentSize(Alignment.Center),
     )
   }
 }
