@@ -99,12 +99,6 @@ fun DateTextField(
       "Date must be formatted as YYYY-MM-DD."
     }
 
-//  val borderColor = if (errorMessage == null) {
-//    Color.Unspecified
-//  } else {
-//    Color.Red
-//  }
-
   TooltipArea(
     tooltip = {
       if (errorMessage != null) {
@@ -132,7 +126,6 @@ fun DateTextField(
       },
       label = { Text(label) },
       modifier = modifier.width(130.dp).wrapContentSize(Alignment.Center),
-//      modifier = modifier.width(130.dp).border(width = 1.dp, color = borderColor).wrapContentSize(Alignment.Center),
       isError = errorMessage != null,
     )
   }
