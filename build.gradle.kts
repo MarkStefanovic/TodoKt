@@ -2,7 +2,7 @@ import org.jetbrains.compose.compose
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
 val exposedVersion = "0.37.3"
-val koinVersion = "3.1.4"
+val koinVersion = "3.1.5"
 
 plugins {
     kotlin("jvm") version "1.6.10"

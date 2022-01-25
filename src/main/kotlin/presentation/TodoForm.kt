@@ -37,6 +37,8 @@ import kotlinx.coroutines.flow.StateFlow
 import presentation.shared.BoundedIntField
 import presentation.shared.DateTextField
 import presentation.shared.EnumDropdown
+import java.time.LocalDate
+import java.time.format.DateTimeParseException
 
 @ExperimentalComposeUiApi
 @ExperimentalFoundationApi
@@ -218,8 +220,15 @@ fun TodoForm(
 
     DateTextField(
       label = "Start Date",
-      value = state.todo.startDate,
-      onValueChange = { request.setValue(state.todo.copy(startDate = it)) },
+      value = state.todo.startDate.toString(),
+      onValueChange = { _, new ->
+        try {
+          val dt = LocalDate.parse(new)
+          request.setValue(state.todo.copy(startDate = dt))
+        } catch (e: DateTimeParseException) {
+          println("$new is not a date.")
+        }
+      },
     )
 
     Spacer(Modifier.height(10.dp))
