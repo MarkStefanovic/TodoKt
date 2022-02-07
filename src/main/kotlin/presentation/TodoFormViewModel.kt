@@ -1,6 +1,5 @@
 package presentation
 
-import adapter.Db
 import domain.Todo
 import domain.TodoFrequency
 import domain.TodoFrequencyName
@@ -10,13 +9,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 
 class TodoFormViewModel(
   scope: CoroutineScope,
-  private val db: Db,
   private val repository: TodoRepository,
   private val events: SharedFlow<TodoFormMessage>,
   private val navigationRequest: NavigationRequest,
@@ -100,20 +97,16 @@ class TodoFormViewModel(
   }
 
   private fun saveTodo(todo: Todo) {
-    db.exec {
-      if (todo.todoId == Todo.defaultTodoId) {
-        repository.add(
-          description = todo.description,
-          note = todo.note,
-          category = todo.category,
-          frequency = todo.frequency,
-          startDate = todo.startDate,
-          advanceDisplayDays = todo.advanceDisplayDays,
-          expireDisplayDays = todo.expireDisplayDays,
-        )
-      } else {
-        repository.update(todo = todo)
-      }
-    }
+    println("saveTodo: $todo")
+    repository.upsert(
+      todoId = todo.todoId,
+      description = todo.description,
+      note = todo.note,
+      category = todo.category,
+      frequency = todo.frequency,
+      startDate = todo.startDate,
+      advanceDisplayDays = todo.advanceDisplayDays,
+      expireDisplayDays = todo.expireDisplayDays,
+    )
   }
 }

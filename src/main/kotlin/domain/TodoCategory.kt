@@ -8,4 +8,15 @@ enum class TodoCategory {
   Holiday,
   Reminder,
   Task;
+
+  val dbName: String
+    get() = when (this) {
+      Any -> "Any"
+      Appointment -> "Appointment"
+      Chore -> "Chore"
+      Grooming -> "Grooming"
+      Holiday -> "Holiday"
+      Reminder -> "Reminder"
+      Task -> "Task"
+    }
 }

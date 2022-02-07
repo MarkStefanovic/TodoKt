@@ -1,28 +1,30 @@
 
-import adapter.Db
-import adapter.ExposedTodoRepository
-import adapter.TodoTable
-import adapter.createTodoTable
+import adapter.SQLiteTodoRepository
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.*
-import androidx.compose.ui.*
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Surface
+import androidx.compose.material.contentColorFor
+import androidx.compose.material.darkColors
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.isCtrlPressed
 import androidx.compose.ui.input.key.key
-import androidx.compose.ui.unit.*
-import androidx.compose.ui.window.*
-import domain.TodoRepository
-import domain.holidays
+import androidx.compose.ui.unit.ExperimentalUnitApi
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.WindowPosition
+import androidx.compose.ui.window.application
+import androidx.compose.ui.window.rememberWindowState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.MutableSharedFlow
-import org.jetbrains.exposed.sql.exists
-import org.koin.core.context.startKoin
-import org.koin.dsl.module
 import presentation.MainView
 import presentation.MainViewModel
 import presentation.NavigationMessage
@@ -35,26 +37,27 @@ import presentation.TodoListViewMessage
 import presentation.TodoListViewModel
 import presentation.TodoListViewRequest
 import java.io.File
+import java.sql.DriverManager
+import kotlin.system.exitProcess
 
-@Suppress("USELESS_CAST")
-val appModule = module {
-  single {
-    //    Db(url = "jdbc:sqlite:file:test?mode=memory&cache=shared", driver = "org.sqlite.JDBC")
-    val dbPath = File("./todo.db")
-    if (!dbPath.exists()) {
-      val defaultDbPath = File("./default.db")
-      if (defaultDbPath.exists()) {
-        defaultDbPath.copyTo(target = dbPath)
-      }
-    }
-    Db(url = "jdbc:sqlite:./todo.db", driver = "org.sqlite.JDBC")
-  }
-  single { ExposedTodoRepository() as TodoRepository }
-}
+// @Suppress("USELESS_CAST")
+// val appModule = module {
+//  single {
+//    //    Db(url = "jdbc:sqlite:file:test?mode=memory&cache=shared", driver = "org.sqlite.JDBC")
+//    val dbPath = File("./todo.db")
+//    if (!dbPath.exists()) {
+//      val defaultDbPath = File("./default.db")
+//      if (defaultDbPath.exists()) {
+//        defaultDbPath.copyTo(target = dbPath)
+//      }
+//    }
+//    Db(url = "jdbc:sqlite:./todo.db", driver = "org.sqlite.J0DBC")
+//  }
+// }
 
-fun initKoin() = startKoin { modules(appModule) }
-
-val koin = initKoin().koin
+// fun initKoin() = startKoin { modules(appModule) }
+//
+// val koin = initKoin().koin
 
 @InternalCoroutinesApi
 @FlowPreview
@@ -65,27 +68,25 @@ val koin = initKoin().koin
 @ExperimentalCoroutinesApi
 @ExperimentalFoundationApi
 fun main() = application {
-  val db = koin.get<Db>()
-  val todoRepository = koin.get<TodoRepository>()
+  try {
+    Class.forName("org.sqlite.JDBC")
+  } catch (ex: ClassNotFoundException) {
+    println("Unable to load the class, org.sqlite.JDBC. Terminating the program...")
+    exitProcess(-1)
+  }
 
-  val scope = MainScope()
-
-  db.exec {
-    if (!TodoTable.exists()) {
-      createTodoTable()
-      for (holiday in holidays) {
-        todoRepository.add(
-          description = holiday.description,
-          note = holiday.note,
-          category = holiday.category,
-          frequency = holiday.frequency,
-          startDate = holiday.startDate,
-          advanceDisplayDays = holiday.advanceDisplayDays,
-          expireDisplayDays = holiday.expireDisplayDays,
-        )
-      }
+  val dbPath = File("./todo.db")
+  if (!dbPath.exists()) {
+    val defaultDbPath = File("./default.db")
+    if (defaultDbPath.exists()) {
+      defaultDbPath.copyTo(target = dbPath)
     }
   }
+
+  val connector = { DriverManager.getConnection("jdbc:sqlite:./todo.db") }
+
+  val todoRepository = SQLiteTodoRepository(connector)
+  val scope = MainScope()
 
   val navigationEvents = MutableSharedFlow<NavigationMessage>()
 
@@ -106,7 +107,6 @@ fun main() = application {
   val todoFormViewModel =
     TodoFormViewModel(
       scope = scope,
-      db = db,
       repository = todoRepository,
       events = todoFormEvents,
       navigationRequest = navigationRequest,
@@ -123,7 +123,6 @@ fun main() = application {
   val todoListViewModel =
     TodoListViewModel(
       scope = scope,
-      db = db,
       repository = todoRepository,
       events = todoListEvents,
       navigationRequest = navigationRequest,

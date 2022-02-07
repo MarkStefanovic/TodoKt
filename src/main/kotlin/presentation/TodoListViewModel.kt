@@ -1,6 +1,5 @@
 package presentation
 
-import adapter.Db
 import domain.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
@@ -10,7 +9,6 @@ import java.time.LocalDate
 @ExperimentalCoroutinesApi
 class TodoListViewModel(
   scope: CoroutineScope,
-  private val db: Db,
   private val repository: TodoRepository,
   private val events: SharedFlow<TodoListViewMessage>,
   private val navigationRequest: NavigationRequest,
@@ -51,7 +49,7 @@ class TodoListViewModel(
   //      .stateIn(coroutineScope, SharingStarted.WhileSubscribed(), emptyMap())
 
   private fun delete(todoId: Int) {
-    db.exec { repository.delete(todoId = todoId) }
+    repository.delete(todoId = todoId)
     refresh()
   }
 
@@ -64,12 +62,10 @@ class TodoListViewModel(
   }
 
   private fun markComplete(todoId: Int) {
-    db.exec {
-      repository.markComplete(
-        todoId = todoId,
-        dateCompleted = LocalDate.now(),
-      )
-    }
+    repository.markComplete(
+      todoId = todoId,
+      dateCompleted = LocalDate.now(),
+    )
     refresh()
   }
 
@@ -82,7 +78,7 @@ class TodoListViewModel(
   }
 
   private fun fetch(todoFilter: TodoFilter) {
-    val todos = db.exec { repository.all() }
+    val todos = repository.all()
     val todosByDate =
       todos
         .filter { todo -> todo.meetsCriteria(filter = todoFilter, refDate = state.value.refDate) }

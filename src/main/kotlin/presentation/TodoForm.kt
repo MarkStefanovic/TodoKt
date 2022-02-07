@@ -128,6 +128,8 @@ fun TodoForm(
           onValueChange = { _, new ->
             if (new.isAnInt()) {
               request.setValue(state.todo.copy(frequency = freq.copy(monthday = new.toInt())))
+            } else {
+              println("The Month Day, $new, is not an Int.")
             }
           },
           minValue = 1,
@@ -147,6 +149,8 @@ fun TodoForm(
           onValueChange = { _, new ->
             if (new.isAnInt()) {
               request.setValue(state.todo.copy(frequency = freq.copy(month = new.toInt())))
+            } else {
+              println("The Month, $new, is not an Int.")
             }
           },
           minValue = 1,
@@ -159,10 +163,12 @@ fun TodoForm(
           onValueChange = { _, new ->
             if (new.isAnInt()) {
               request.setValue(state.todo.copy(frequency = freq.copy(day = new.toInt())))
+            } else {
+              println("The Day, $new, is not an Int.")
             }
           },
           minValue = 1,
-          maxValue = 28,
+          maxValue = 31,
           modifier = Modifier.width(150.dp),
         )
       }
@@ -174,6 +180,8 @@ fun TodoForm(
           onValueChange = { _, new ->
             if (new.isAnInt()) {
               request.setValue(state.todo.copy(frequency = freq.copy(days = new.toInt())))
+            } else {
+              println("The Days, $new, is not an Int.")
             }
           },
           minValue = 1,
@@ -188,6 +196,8 @@ fun TodoForm(
           onValueChange = { _, new ->
             if (new.isAnInt()) {
               request.setValue(state.todo.copy(frequency = freq.copy(month = new.toInt())))
+            } else {
+              println("The Month, $new, is not an Int.")
             }
           },
           minValue = 1,
@@ -200,6 +210,8 @@ fun TodoForm(
           onValueChange = { _, new ->
             if (new.isAnInt()) {
               request.setValue(state.todo.copy(frequency = freq.copy(week = new.toInt())))
+            } else {
+              println("The Week, $new, is not an Int.")
             }
           },
           minValue = 1,

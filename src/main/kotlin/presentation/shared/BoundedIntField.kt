@@ -33,7 +33,7 @@ fun BoundedIntField(
   minValue: Int?,
   maxValue: Int?,
   modifier: Modifier = Modifier,
-  onValueChange: (String, String) -> Unit = { old, new -> },
+  onValueChange: (String, String) -> Unit = { _, _ -> },
 ) {
   var textValue by remember { mutableStateOf(value) }
 

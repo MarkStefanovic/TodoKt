@@ -292,8 +292,8 @@ sealed class TodoFrequency {
     override val name = TodoFrequencyName.Yearly
 
     init {
-      require(month in 1..12) { "month must be between 1 and 12." }
-      require(day in 1..31) { "day must be between 1 and 31." }
+      require(month in 1..12) { "Month must be between 1 and 12, but got $month." }
+      require(day in 1..31) { "Day must be between 1 and 31, but got $day." }
     }
 
     override fun nextDisplayWindow(
