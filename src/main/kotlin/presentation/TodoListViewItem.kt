@@ -88,7 +88,7 @@ fun TodoListViewItem(
 
         TextButton(
           onClick = { onDelete(todo) },
-          modifier = Modifier.size(width = 80.dp, height = 30.dp),
+          modifier = Modifier.width(width = 80.dp),
         ) {
           Text(
             text = "Delete",
