@@ -32,7 +32,7 @@ dependencies {
     // http://www.slf4j.org/codes.html#StaticLoggerBinder
     implementation("org.slf4j:slf4j-nop:2.0.0-alpha6")
 
-    implementation("androidx.annotation:annotation:1.4.0-alpha01")
+    implementation("androidx.annotation:annotation:1.4.0-alpha02")
 
 }
 

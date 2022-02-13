@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.isCtrlPressed
 import androidx.compose.ui.input.key.key
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.ExperimentalUnitApi
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
@@ -40,25 +41,6 @@ import java.io.File
 import java.sql.DriverManager
 import kotlin.system.exitProcess
 
-// @Suppress("USELESS_CAST")
-// val appModule = module {
-//  single {
-//    //    Db(url = "jdbc:sqlite:file:test?mode=memory&cache=shared", driver = "org.sqlite.JDBC")
-//    val dbPath = File("./todo.db")
-//    if (!dbPath.exists()) {
-//      val defaultDbPath = File("./default.db")
-//      if (defaultDbPath.exists()) {
-//        defaultDbPath.copyTo(target = dbPath)
-//      }
-//    }
-//    Db(url = "jdbc:sqlite:./todo.db", driver = "org.sqlite.J0DBC")
-//  }
-// }
-
-// fun initKoin() = startKoin { modules(appModule) }
-//
-// val koin = initKoin().koin
-
 @InternalCoroutinesApi
 @FlowPreview
 @ExperimentalUnitApi
@@ -84,6 +66,8 @@ fun main() = application {
   }
 
   val connector = { DriverManager.getConnection("jdbc:sqlite:./todo.db") }
+
+//  val connector = { DriverManager.getConnection("jdbc:sqlite:file:test?mode=memory&cache=shared") }
 
   val todoRepository = SQLiteTodoRepository(connector)
   val scope = MainScope()
@@ -130,8 +114,8 @@ fun main() = application {
 
   val state =
     rememberWindowState(
-      width = 600.dp, // use Dp.Unspecified to auto-fit
-      height = 900.dp,
+      width = 700.dp, // use Dp.Unspecified to auto-fit
+      height = Dp.Unspecified,
       position = WindowPosition.Aligned(Alignment.TopStart),
     )
 
